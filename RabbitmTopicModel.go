@@ -60,6 +60,8 @@ func (this *RabbitmTopicModel) Publish(msg string, key string) *RabbitmTopicMode
 }
 
 //订阅
+//queueName如果是"" 则会随机创建队列 如果填写则监听您锁填写的队列名称
+//keys 监听的kyes 例如 user.* logs.info.*
 func (this *RabbitmTopicModel) Subscribe(queueName string, keys ...interface{}) *RabbitmTopicModel {
 	var err error
 
@@ -68,7 +70,7 @@ func (this *RabbitmTopicModel) Subscribe(queueName string, keys ...interface{}) 
 
 	for _, p := range keys {
 		key := core.E到文本(p)
-		log.Printf("监听主题 %s", key)
+		log.Printf("监听队列%s 主题 %s", this.q.Name, key)
 		err = this.ch.QueueBind(
 			"",                // queue name
 			key,               // routing key

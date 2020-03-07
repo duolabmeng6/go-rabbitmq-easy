@@ -51,31 +51,37 @@ func TestRabbitmqTopicModel_Subscribe(t *testing.T) {
 func TestRabbitmqTopicModel_Subscribe2(t *testing.T) {
 	//连接
 	task := NewRabbitmTopicModel("amqp://admin:admin@182.92.84.229:5672/", "logs_topic")
+	server1 := 0
+	server2 := 0
+	server3 := 0
 
 	//订阅
-	task.Subscribe("server1", "core.error")
+	task.Subscribe("", "core.error")
 	//接受订阅数据
 	go func() {
 		for d := range task.Receive() {
-			log.Printf("服务端1 core.error 的信息: %s", d.Body)
+			server1++
+			log.Printf("收到次数%d 服务端1 core.error 的信息: %s", server1, d.Body)
 		}
 	}()
 
 	//订阅
-	task.Subscribe("server1", "core.error")
+	task.Subscribe("", "core.error")
 	//接受订阅数据
 	go func() {
 		for d := range task.Receive() {
-			log.Printf("服务端2 core.error 的信息: %s", d.Body)
+			server2++
+			log.Printf("收到次数%d 服务端2 core.error 的信息: %s", server2, d.Body)
 		}
 	}()
 
 	//订阅
-	task.Subscribe("server3", "core.error")
+	task.Subscribe("", "core.error")
 	//接受订阅数据
 	go func() {
 		for d := range task.Receive() {
-			log.Printf("服务端3 core.error 的信息: %s", d.Body)
+			server3++
+			log.Printf("收到次数%d 服务端3 core.error 的信息: %s", server3, d.Body)
 		}
 	}()
 
