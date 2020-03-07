@@ -1,23 +1,22 @@
 package Service
 
 import (
+	"github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
 	"log"
 )
 
-type RabbitmModel struct {
+type RabbitmTopicModel struct {
 	conn         *amqp.Connection
 	ch           *amqp.Channel
 	q            amqp.Queue
 	ReceivedChan <-chan amqp.Delivery
-	queueName    string
 	link         string
 	exchangeName string
 }
 
-func NewRabbitmModel(link string, queueName string, exchangeName string) *RabbitmModel {
-	this := new(RabbitmModel)
-	this.queueName = queueName
+func NewRabbitmTopicModel(link string, exchangeName string) *RabbitmTopicModel {
+	this := new(RabbitmTopicModel)
 	this.link = link
 	this.exchangeName = exchangeName
 
@@ -26,7 +25,7 @@ func NewRabbitmModel(link string, queueName string, exchangeName string) *Rabbit
 }
 
 //连接
-func (this *RabbitmModel) Init() *RabbitmModel {
+func (this *RabbitmTopicModel) Init() *RabbitmTopicModel {
 	var err error
 	this.conn, err = amqp.Dial(this.link)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -39,7 +38,7 @@ func (this *RabbitmModel) Init() *RabbitmModel {
 		//创建转发器
 		err = this.ch.ExchangeDeclare(
 			this.exchangeName, // name
-			"direct",          // type
+			"topic",           // type
 			true,              // durable
 			false,             // auto-deleted
 			false,             // internal
@@ -53,26 +52,32 @@ func (this *RabbitmModel) Init() *RabbitmModel {
 }
 
 //发布
-func (this *RabbitmModel) Publish(msg string) *RabbitmModel {
+func (this *RabbitmTopicModel) Publish(msg string, key string) *RabbitmTopicModel {
 
-	err := this.ch.Publish(this.exchangeName, this.q.Name, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
+	err := this.ch.Publish(this.exchangeName, key, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
 	failOnError(err, "")
 	return this
 }
 
 //订阅
-func (this *RabbitmModel) Subscribe() *RabbitmModel {
+func (this *RabbitmTopicModel) Subscribe(queueName string, keys ...interface{}) *RabbitmTopicModel {
 	var err error
-	this.q, err = this.ch.QueueDeclare(this.queueName, false, false, false, false, nil)
+
+	this.q, err = this.ch.QueueDeclare(queueName, false, false, false, false, nil)
 	failOnError(err, "Failed to declare a queue")
 
-	err = this.ch.QueueBind(
-		this.q.Name,       // queue name
-		"",                // routing key
-		this.exchangeName, // exchange
-		false,
-		nil,
-	)
+	for _, p := range keys {
+		key := core.E到文本(p)
+		log.Printf("监听主题 %s", key)
+		err = this.ch.QueueBind(
+			"",                // queue name
+			key,               // routing key
+			this.exchangeName, // exchange
+			false,
+			nil,
+		)
+	}
+
 	this.ReceivedChan, err = this.ch.Consume(
 		this.q.Name, // queue
 		"",          // consumer
@@ -92,12 +97,6 @@ func (this *RabbitmModel) Subscribe() *RabbitmModel {
 	return this
 }
 
-func (this *RabbitmModel) Receive() <-chan amqp.Delivery {
+func (this *RabbitmTopicModel) Receive() <-chan amqp.Delivery {
 	return this.ReceivedChan
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
 }
