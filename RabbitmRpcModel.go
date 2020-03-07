@@ -3,7 +3,6 @@ package RabbitmqEasy
 import (
 	"github.com/duolabmeng6/goefun/coreUtil"
 	"github.com/streadway/amqp"
-	"log"
 	"strconv"
 )
 
@@ -66,10 +65,10 @@ func (this *RabbitmRpcModel) Call(data string) (res int, err error) {
 	corrId := coreUtil.E取uuid()
 
 	err = this.ch.Publish(
-		"",          // exchange
-		"rpc_queue", // routing key
-		false,       // mandatory
-		false,       // immediate
+		"",                // exchange
+		this.exchangeName, // routing key
+		false,             // mandatory
+		false,             // immediate
 		amqp.Publishing{
 			ContentType:   "text/plain",
 			CorrelationId: corrId,
@@ -89,11 +88,17 @@ func (this *RabbitmRpcModel) Call(data string) (res int, err error) {
 }
 
 //订阅
-func (this *RabbitmRpcModel) Subscribe(queueName string) *RabbitmRpcModel {
+func (this *RabbitmRpcModel) Subscribe() *RabbitmRpcModel {
 	var err error
-	this.q, err = this.ch.QueueDeclare("rpc_queue", false, false, false, false, nil)
+	this.q, err = this.ch.QueueDeclare(
+		this.exchangeName, // name
+		false,             // durable
+		false,             // delete when unused
+		false,             // exclusive
+		false,             // no-wait
+		nil,               // arguments
+	)
 	failOnError(err, "Failed to declare a queue")
-	log.Printf("监听队列%s 监听转发器 %s", this.q.Name, this.exchangeName)
 
 	err = this.ch.Qos(
 		1,     // prefetch count
@@ -105,13 +110,14 @@ func (this *RabbitmRpcModel) Subscribe(queueName string) *RabbitmRpcModel {
 	this.ReceivedChan, err = this.ch.Consume(
 		this.q.Name, // queue
 		"",          // consumer
-		true,        // auto-ack
+		false,       // auto-ack
 		false,       // exclusive
 		false,       // no-local
 		false,       // no-wait
 		nil,         // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
 	//go func() {
 	//	for d := range ReceivedChan {
 	//		log.Printf("Received a message: %s", d.Body)
@@ -133,6 +139,8 @@ func (this *RabbitmRpcModel) Callfun(d amqp.Delivery, data []byte) {
 			Body:          data,
 		})
 	failOnError(err, "Failed to publish a message")
+
+	d.Ack(false)
 
 }
 func (this *RabbitmRpcModel) Receive() <-chan amqp.Delivery {

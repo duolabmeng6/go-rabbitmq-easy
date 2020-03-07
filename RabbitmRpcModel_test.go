@@ -3,7 +3,6 @@ package RabbitmqEasy
 import (
 	. "github.com/duolabmeng6/goefun/core"
 	"log"
-	"strconv"
 	"testing"
 )
 
@@ -12,7 +11,7 @@ func TestRabbitmqModel_Publishaaaa(t *testing.T) {
 	//连接
 	task := NewRabbitmRpcModel("amqp://admin:admin@182.92.84.229:5672/", "rpc_queue")
 	//发布消息
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 10; i++ {
 		res, err := task.Call(E到文本(i))
 		failOnError(err, "Failed to handle RPC request")
 		log.Printf(" [.] Got %d", res)
@@ -25,19 +24,17 @@ func TestRabbitmqModel_Subscribedddb(t *testing.T) {
 	//连接
 	task := NewRabbitmRpcModel("amqp://admin:admin@182.92.84.229:5672/", "rpc_queue")
 	//订阅
-	task.Subscribe("rpc_queue")
+	task.Subscribe()
 	//接受订阅数据
 	go func() {
 		for d := range task.Receive() {
-			n, err := strconv.Atoi(string(d.Body))
-			failOnError(err, "Failed to convert body to integer")
+			n := E到整数(E到文本(d.Body))
 
 			log.Printf(" [.] fib(%d)", n)
-			response := fib(n)
+			response := fib(int(n))
 
-			task.Callfun(d, []byte(strconv.Itoa(response)))
+			task.Callfun(d, E到字节集(E到文本(response)))
 
-			d.Ack(false)
 		}
 	}()
 
