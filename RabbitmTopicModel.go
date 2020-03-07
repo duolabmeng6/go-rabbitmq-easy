@@ -1,4 +1,4 @@
-package Service
+package RabbitmqEasy
 
 import (
 	"github.com/duolabmeng6/goefun/core"
@@ -15,6 +15,8 @@ type RabbitmTopicModel struct {
 	exchangeName string
 }
 
+//link 连接 地址
+//exchangeName 转发器的名称
 func NewRabbitmTopicModel(link string, exchangeName string) *RabbitmTopicModel {
 	this := new(RabbitmTopicModel)
 	this.link = link
@@ -52,7 +54,7 @@ func (this *RabbitmTopicModel) Init() *RabbitmTopicModel {
 }
 
 //发布
-func (this *RabbitmTopicModel) Publish(msg string, key string) *RabbitmTopicModel {
+func (this *RabbitmTopicModel) Publish(key string, msg string) *RabbitmTopicModel {
 
 	err := this.ch.Publish(this.exchangeName, key, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
 	failOnError(err, "")
@@ -60,7 +62,7 @@ func (this *RabbitmTopicModel) Publish(msg string, key string) *RabbitmTopicMode
 }
 
 //订阅
-//queueName如果是"" 则会随机创建队列 如果填写则监听您锁填写的队列名称
+//queueName如果是"" 则会随机创建队列 如果填写则监听您锁填写的队列名称  相当于有多少个消费者
 //keys 监听的kyes 例如 user.* logs.info.*
 func (this *RabbitmTopicModel) Subscribe(queueName string, keys ...interface{}) *RabbitmTopicModel {
 	var err error

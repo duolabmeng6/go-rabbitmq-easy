@@ -1,4 +1,4 @@
-package Service
+package RabbitmqEasy
 
 import (
 	. "github.com/duolabmeng6/goefun/core"
@@ -9,10 +9,10 @@ import (
 //发布消息
 func TestRabbitmqModel_Publish(t *testing.T) {
 	//连接
-	task := NewRabbitmModel("amqp://admin:admin@182.92.84.229:5672/", "hello_queue", "logs_direct")
+	task := NewRabbitmModel("amqp://admin:admin@182.92.84.229:5672/", "logs_direct")
 	//发布消息
 	for i := 1; i <= 100; i++ {
-		task.Publish(E到文本(i) + " hello" + E取现行时间().E时间到文本("Y-m-d H:i:s"))
+		task.Publish("hello_queue", E到文本(i)+" hello"+E取现行时间().E时间到文本("Y-m-d H:i:s"))
 		E延时(100)
 	}
 }
@@ -20,9 +20,9 @@ func TestRabbitmqModel_Publish(t *testing.T) {
 //订阅消息
 func TestRabbitmqModel_Subscribe(t *testing.T) {
 	//连接
-	task := NewRabbitmModel("amqp://admin:admin@182.92.84.229:5672/", "hello_queue", "logs_direct")
+	task := NewRabbitmModel("amqp://admin:admin@182.92.84.229:5672/", "logs_direct")
 	//订阅
-	task.Subscribe()
+	task.Subscribe("hello_queue")
 	//接受订阅数据
 	go func() {
 		for d := range task.Receive() {

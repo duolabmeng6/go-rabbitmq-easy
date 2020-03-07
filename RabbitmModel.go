@@ -1,4 +1,4 @@
-package Service
+package RabbitmqEasy
 
 import (
 	"github.com/streadway/amqp"
@@ -10,14 +10,13 @@ type RabbitmModel struct {
 	ch           *amqp.Channel
 	q            amqp.Queue
 	ReceivedChan <-chan amqp.Delivery
-	queueName    string
 	link         string
 	exchangeName string
 }
 
-func NewRabbitmModel(link string, queueName string, exchangeName string) *RabbitmModel {
+func NewRabbitmModel(link string, exchangeName string) *RabbitmModel {
 	this := new(RabbitmModel)
-	this.queueName = queueName
+
 	this.link = link
 	this.exchangeName = exchangeName
 
@@ -53,17 +52,17 @@ func (this *RabbitmModel) Init() *RabbitmModel {
 }
 
 //发布
-func (this *RabbitmModel) Publish(msg string) *RabbitmModel {
+func (this *RabbitmModel) Publish(queueName string, msg string) *RabbitmModel {
 
-	err := this.ch.Publish(this.exchangeName, this.q.Name, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
+	err := this.ch.Publish(this.exchangeName, queueName, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
 	failOnError(err, "")
 	return this
 }
 
 //订阅
-func (this *RabbitmModel) Subscribe() *RabbitmModel {
+func (this *RabbitmModel) Subscribe(queueName string) *RabbitmModel {
 	var err error
-	this.q, err = this.ch.QueueDeclare(this.queueName, false, false, false, false, nil)
+	this.q, err = this.ch.QueueDeclare(queueName, false, false, false, false, nil)
 	failOnError(err, "Failed to declare a queue")
 
 	err = this.ch.QueueBind(
