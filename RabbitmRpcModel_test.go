@@ -33,7 +33,7 @@ func TestRabbitmqModel_Subscribedddb(t *testing.T) {
 			log.Printf(" [.] fib(%d)", n)
 			response := fib(int(n))
 
-			task.Callfun(d, E到字节集(E到文本(response)))
+			task.ReturnResult(d, E到字节集(E到文本(response)))
 
 		}
 	}()
