@@ -48,7 +48,8 @@ func (this *RabbitmTopicModel) Init() *RabbitmTopicModel {
 			nil,               // arguments
 		)
 		failOnError(err, "Failed to declare an exchange")
-
+		err = this.ch.Qos(1, 0, true)
+		failOnError(err, "Failed to Qos")
 	}
 	return this
 }

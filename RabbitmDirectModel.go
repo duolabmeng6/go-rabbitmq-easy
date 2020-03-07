@@ -1,11 +1,12 @@
 package RabbitmqEasy
 
 import (
+	"github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
 	"log"
 )
 
-type RabbitmModel struct {
+type RabbitmDirectModel struct {
 	conn         *amqp.Connection
 	ch           *amqp.Channel
 	q            amqp.Queue
@@ -14,9 +15,8 @@ type RabbitmModel struct {
 	exchangeName string
 }
 
-func NewRabbitmModel(link string, exchangeName string) *RabbitmModel {
-	this := new(RabbitmModel)
-
+func NewRabbitmDirectModel(link string, exchangeName string) *RabbitmDirectModel {
+	this := new(RabbitmDirectModel)
 	this.link = link
 	this.exchangeName = exchangeName
 
@@ -25,7 +25,7 @@ func NewRabbitmModel(link string, exchangeName string) *RabbitmModel {
 }
 
 //连接
-func (this *RabbitmModel) Init() *RabbitmModel {
+func (this *RabbitmDirectModel) Init() *RabbitmDirectModel {
 	var err error
 	this.conn, err = amqp.Dial(this.link)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -52,26 +52,32 @@ func (this *RabbitmModel) Init() *RabbitmModel {
 }
 
 //发布
-func (this *RabbitmModel) Publish(queueName string, msg string) *RabbitmModel {
-
-	err := this.ch.Publish(this.exchangeName, queueName, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
+func (this *RabbitmDirectModel) Publish(keys string, msg string) *RabbitmDirectModel {
+	err := this.ch.Publish(this.exchangeName, keys, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(msg)})
 	failOnError(err, "")
 	return this
 }
 
 //订阅
-func (this *RabbitmModel) Subscribe(queueName string) *RabbitmModel {
+func (this *RabbitmDirectModel) Subscribe(queueName string, keys ...interface{}) *RabbitmDirectModel {
 	var err error
 	this.q, err = this.ch.QueueDeclare(queueName, false, false, false, false, nil)
 	failOnError(err, "Failed to declare a queue")
 
-	err = this.ch.QueueBind(
-		this.q.Name,       // queue name
-		"",                // routing key
-		this.exchangeName, // exchange
-		false,
-		nil,
-	)
+	log.Printf("监听队列 %s", this.q.Name)
+
+	for _, p := range keys {
+		key := core.E到文本(p)
+		log.Printf("监听队列%s 监听key %s", this.q.Name, key)
+		err = this.ch.QueueBind(
+			this.q.Name,       // queue name
+			key,               // routing key
+			this.exchangeName, // exchange
+			false,
+			nil,
+		)
+	}
+
 	this.ReceivedChan, err = this.ch.Consume(
 		this.q.Name, // queue
 		"",          // consumer
@@ -91,7 +97,7 @@ func (this *RabbitmModel) Subscribe(queueName string) *RabbitmModel {
 	return this
 }
 
-func (this *RabbitmModel) Receive() <-chan amqp.Delivery {
+func (this *RabbitmDirectModel) Receive() <-chan amqp.Delivery {
 	return this.ReceivedChan
 }
 
