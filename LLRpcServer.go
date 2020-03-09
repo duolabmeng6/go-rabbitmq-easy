@@ -3,7 +3,6 @@ package RabbitmqEasy
 import (
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
-	"time"
 )
 
 type LLRpcServer struct {
@@ -83,46 +82,15 @@ func (this *LLRpcServer) Router(Path string, qps int, fn func(amqp.Delivery) ([]
 				core.E调试输出("时间 收到数据", core.E取现行时间().E取时间戳毫秒())
 
 				//回调函数  调用这个函数如果超时30秒 怎么让他停止这个函数的执行
-
-				service := func() []byte {
-					data, _ := fn(d)
-					return data
-				}
-				data := AsyncServiceOut(service, 3*time.Second)
-				core.E调试输出("处理结果", core.E到文本(data))
+				data, flag := fn(d)
 
 				this.ReturnResult(d, data)
-				//d.Ack(flag == false)
-				d.Ack(false)
+				d.Ack(flag == false)
 
 			}()
 
 		}
 	}()
-}
-
-func AsyncService(service func() []byte) chan []byte {
-	retCh := make(chan []byte, 1)
-	go func() {
-		ret := service()
-		core.E调试输出("service()执行结束.")
-		retCh <- ret
-		core.E调试输出("service()返回值塞进通道.")
-	}()
-	return retCh
-}
-
-func AsyncServiceOut(service func() []byte, duration time.Duration) []byte {
-	select {
-	case ret := <-AsyncService(service):
-		core.E调试输出("====", ret)
-		return ret
-	case <-time.After(duration):
-		core.E调试输出("time out")
-		return []byte{}
-
-	}
-
 }
 
 //回调结果
