@@ -4,6 +4,7 @@ import (
 	. "github.com/duolabmeng6/goefun/core"
 	"log"
 	"testing"
+	"time"
 )
 
 //发布消息
@@ -31,7 +32,7 @@ func TestRabbitmqModel_Subscribedddb(t *testing.T) {
 			n := E到整数(E到文本(d.Body))
 
 			log.Printf(" [.] fib(%d)", n)
-			response := fib(int(n))
+			response := fib(int(n), time.Now())
 
 			task.ReturnResult(d, E到字节集(E到文本(response)))
 
@@ -41,12 +42,17 @@ func TestRabbitmqModel_Subscribedddb(t *testing.T) {
 	E延时(1000 * 60 * 60)
 }
 
-func fib(n int) int {
+func fib(n int, last time.Time) int {
+
+	if time.Now().After(last) {
+		return -100
+	}
+
 	if n == 0 {
 		return 0
 	} else if n == 1 {
 		return 1
 	} else {
-		return fib(n-1) + fib(n-2)
+		return fib(n-1, last) + fib(n-2, last)
 	}
 }

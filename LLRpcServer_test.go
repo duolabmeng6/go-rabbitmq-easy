@@ -5,6 +5,7 @@ import (
 	"github.com/duolabmeng6/goefun/coreUtil"
 	"github.com/streadway/amqp"
 	"testing"
+	"time"
 )
 
 //发布消息
@@ -46,7 +47,7 @@ func TestRabbitmqModel_Subscribeddffdb(t *testing.T) {
 				//log.Printf(" [.] fib(%d)", n)
 				时间统计 := coreUtil.New时间统计类()
 
-				response := fib(int(n))
+				response := fib(int(n), time.Now())
 
 				//t.Log("收到任务数据", n, "rpc_queue1计算结果为", E到文本(response), "耗时", 时间统计.E取秒())
 				//E延时(5*1000)
