@@ -173,6 +173,8 @@ github.com/xxjwxc/gowp v0.0.0-20200102094413-b08b68b60e54 h1:RIYXdJfIkIvoNWaBpju
 github.com/xxjwxc/gowp v0.0.0-20200102094413-b08b68b60e54/go.mod h1:W3ov9P5mWRYbXSd0LQ9k7qmxAIYKeYMOKtjFdek4fv4=
 github.com/xxjwxc/public v0.0.0-20191231095155-8f0478819bf3 h1:cjSJNHUY94XZixxjaTGxZJuR5cl32qsFG5+nLL5cd9Q=
 github.com/xxjwxc/public v0.0.0-20191231095155-8f0478819bf3/go.mod h1:jRdnSLrbRE/HOshXVrT89giQDRAOCGUer3yU996I2kE=
+go.etcd.io/etcd v0.5.0-alpha.5 h1:VOolFSo3XgsmnYDLozjvZ6JL6AAwIDu1Yx1y+4EYLDo=
+go.etcd.io/etcd v3.4.3+incompatible h1:o7FWvxyeMTs4lLEEO2d2dasL5+8aFltVUYZsNukrjME=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=
 go.uber.org/atomic v1.5.0 h1:OI5t8sDa1Or+q8AeE+yKeB/SDYioSHAgcVljj9JIETY=
 go.uber.org/atomic v1.5.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=
