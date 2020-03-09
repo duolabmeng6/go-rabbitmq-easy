@@ -13,15 +13,15 @@ func TestRabbitmqModel_Publishddaaaa(t *testing.T) {
 	//连接
 	task := NewLLRpcClient("amqp://admin:admin@182.92.84.229:5672/")
 	//发布消息
-	线程池 := coreUtil.New线程池(10)
-	for i := 1; i <= 10000; i++ {
+	线程池 := coreUtil.New线程池(1000)
+	for i := 1; i <= 100000; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
 
-			res, err := task.Call("rpc_queue1", E到字节集(E到文本(i)), 20)
+			_, err := task.Call("rpc_queue1", E到字节集(E到文本("10")), 10)
 			failOnError(err, "Failed to handle RPC request")
-			E调试输出("发送数据", E到文本(i), "rpc_queue1 计算结果", E到文本(res))
+			//E调试输出("发送数据", E到文本(i), "rpc_queue1 计算结果", E到文本(res))
 
 		}(i)
 		//go func(i int) {
@@ -40,7 +40,7 @@ func TestRabbitmqModel_Subscribeddffdb(t *testing.T) {
 		//连接
 		go func() {
 			task := NewLLRpcServer("amqp://admin:admin@182.92.84.229:5672/")
-			task.Router("rpc_queue1", 10, func(delivery amqp.Delivery) ([]byte, bool) {
+			task.Router("rpc_queue1", 1000, func(delivery amqp.Delivery) ([]byte, bool) {
 				//t.Log("时间",E取现行时间().E时间到文本(""), "收到任务数据")
 
 				n := E到整数(E到文本(delivery.Body))

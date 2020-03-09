@@ -1,7 +1,6 @@
 package RabbitmqEasy
 
 import (
-	"github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
 )
 
@@ -78,17 +77,15 @@ func (this *LLRpcServer) Router(Path string, qps int, fn func(amqp.Delivery) ([]
 	go func() {
 		for d := range ReceivedChan {
 			//收到任务创建协程执行
-			go func() {
-				core.E调试输出("时间 收到数据", core.E取现行时间().E取时间戳毫秒())
-
+			go func(d amqp.Delivery) {
+				//core.E调试输出("时间 收到数据", core.E取现行时间().E取时间戳毫秒())
 				//回调函数  调用这个函数如果超时30秒 怎么让他停止这个函数的执行
 				data, flag := fn(d)
 
 				this.ReturnResult(d, data)
+
 				d.Ack(flag == false)
-
-			}()
-
+			}(d)
 		}
 	}()
 }
