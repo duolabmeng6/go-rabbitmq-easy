@@ -22,9 +22,10 @@ type LLRpcConn struct {
 }
 
 const (
-	reconnectDelay = 2 * time.Second // 连接断开后多久重连
-	resendDelay    = 2 * time.Second // 消息发送失败后，多久重发
-	resendTime     = 6               // 消息重发次数
+	reconnectDelay         = 2 * time.Second // 连接断开后多久重连
+	MaxWaitConnErrorNumber = 5               // 调用推送命令时,连接断开后 等待多少次重连失败 返回错误
+	resendDelay            = 2 * time.Second // 消息发送失败后，多久重发
+	resendTime             = 6               // 消息重发次数
 )
 
 var (
@@ -133,7 +134,16 @@ func (mq *LLRpcConn) Send(data []byte) error {
 
 func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	if !mq.isConnected {
-		return errors.New("推送失败，未连接到服务器")
+		for i := 0; i < MaxWaitConnErrorNumber; i++ {
+			mq.logger.Println("等待连接服务器", i, "次")
+			time.Sleep(reconnectDelay)
+			if mq.isConnected {
+				break
+			}
+		}
+		if !mq.isConnected {
+			return errors.New("推送失败，未连接到服务器")
+		}
 	}
 	var currentTime = 0
 	for {
