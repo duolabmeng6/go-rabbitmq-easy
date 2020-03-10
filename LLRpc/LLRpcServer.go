@@ -3,6 +3,7 @@ package LLRpc
 import (
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
+	"time"
 )
 
 type LLRpcServer struct {
@@ -107,7 +108,19 @@ func (this *LLRpcServer) Router(Path string, qps int, fn func(amqp.Delivery) ([]
 
 //回调结果
 func (this *LLRpcServer) ReturnResult(d amqp.Delivery, data []byte) {
-	this.producer.Send2(d, data)
+	this.producer.Publish(
+		"",        // Exchange
+		d.ReplyTo, // Routing key
+		false,     // Mandatory
+		false,     // Immediate
+		amqp.Publishing{
+			DeliveryMode:  2,
+			ContentType:   "text/plain",
+			CorrelationId: d.CorrelationId,
+			Body:          data,
+			Timestamp:     time.Now(),
+		},
+	)
 
 	//err := this.ch.Publish(
 	//	"",        // exchange

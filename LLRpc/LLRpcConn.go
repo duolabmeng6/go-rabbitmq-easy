@@ -131,36 +131,7 @@ func (mq *LLRpcConn) Send(data []byte) error {
 	}
 }
 
-func (mq *LLRpcConn) Send2(d amqp.Delivery, data []byte) error {
-	if !mq.isConnected {
-		return errors.New("推送失败，未连接到服务器")
-	}
-	var currentTime = 0
-	for {
-		err := mq.UnsafePush2(d, data)
-		if err != nil {
-			mq.logger.Println("推送失败 ，重试中...")
-			currentTime += 1
-			if currentTime < resendTime {
-				continue
-			} else {
-				return err
-			}
-		}
-		ticker := time.NewTicker(resendDelay)
-		select {
-		case confirm := <-mq.notifyConfirm:
-			if confirm.Ack {
-				//mq.logger.Println("推送成功!")
-				return nil
-			}
-		case <-ticker.C:
-		}
-		mq.logger.Println("推送失败 ，重试中...")
-	}
-}
-
-func (mq *LLRpcConn) Send3(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
+func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	if !mq.isConnected {
 		return errors.New("推送失败，未连接到服务器")
 	}
@@ -212,27 +183,6 @@ func (mq *LLRpcConn) UnsafePush(data []byte) error {
 			ContentType:  "application/json",
 			Body:         data,
 			Timestamp:    time.Now(),
-		},
-	)
-}
-
-// 发送出去，不管是否接受的到
-func (mq *LLRpcConn) UnsafePush2(d amqp.Delivery, data []byte) error {
-	if !mq.isConnected {
-		return errNotConnected
-	}
-
-	return mq.channel.Publish(
-		"",        // Exchange
-		d.ReplyTo, // Routing key
-		false,     // Mandatory
-		false,     // Immediate
-		amqp.Publishing{
-			DeliveryMode:  2,
-			ContentType:   "text/plain",
-			CorrelationId: d.CorrelationId,
-			Body:          data,
-			Timestamp:     time.Now(),
 		},
 	)
 }

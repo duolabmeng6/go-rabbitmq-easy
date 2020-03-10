@@ -134,7 +134,7 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 	corrId := coreUtil.E取uuid()
 
 	//发送消息到任务队列
-	err = this.producer.Send3(
+	err = this.producer.Publish(
 		"",    // 交换机名称
 		Path,  // 路由kyes
 		false, // 当mandatory标志位设置为true时，如果exchange根据自身类型和消息routeKey无法找到一个符合条件的queue，那么会调用basic.return方法将消息返还给生产者；当mandatory设为false时，出现上述情形broker会直接将消息扔掉。
