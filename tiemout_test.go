@@ -1,4 +1,4 @@
-package RabbitmqEasy
+package main
 
 import (
 	"github.com/duolabmeng6/goefun/core"
