@@ -133,15 +133,6 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 	}
 	corrId := coreUtil.E取uuid()
 
-	defer func() { //defer就是把匿名函数压入到defer栈中，等到执行完毕后或者发生异常后调用匿名函数
-		err := recover() //recover是内置函数，可以捕获到异常
-		if err != nil {  //说明有错误
-			core.E调试输出("err=", err)
-			//当然这里可以把错误的详细位置发送给开发人员
-			//send email to admin
-		}
-	}()
-
 	//发送消息到任务队列
 	err = this.producer.Send3(
 		"",    // 交换机名称
