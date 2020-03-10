@@ -11,8 +11,10 @@ import (
 func TestRabbitmqModel_Publishddaaaa(t *testing.T) {
 	//连接
 	task := NewLLRpcClient("amqp://admin:admin@182.92.84.229:5672/")
+	E延时(1000)
+
 	//发布消息
-	线程池 := coreUtil.New线程池(200000)
+	线程池 := coreUtil.New线程池(1)
 	for i := 1; i <= 10000000000; i++ {
 		线程池.E加入任务()
 		go func(i int) {
@@ -21,6 +23,7 @@ func TestRabbitmqModel_Publishddaaaa(t *testing.T) {
 			res, err := task.Call("rpc_queue1", E到字节集(E到文本("10")), 1)
 			failOnError(err, "Failed to handle RPC request")
 			E调试输出("发送数据", E到文本(i), "rpc_queue1 计算结果", E到文本(res))
+			E延时(100)
 
 		}(i)
 		//go func(i int) {
