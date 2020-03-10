@@ -103,6 +103,6 @@ func (this *RabbitmDirectModel) Receive() <-chan amqp.Delivery {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		core.E调试输出格式化("%s: %s", msg, err)
 	}
 }

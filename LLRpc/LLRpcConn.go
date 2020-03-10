@@ -162,8 +162,7 @@ func (mq *LLRpcConn) Send2(d amqp.Delivery, data []byte) error {
 
 func (mq *LLRpcConn) Send3(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	if !mq.isConnected {
-		return nil
-		//return errors.New("推送失败，未连接到服务器")
+		return errors.New("推送失败，未连接到服务器")
 	}
 	var currentTime = 0
 	for {
