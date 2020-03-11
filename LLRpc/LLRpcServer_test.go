@@ -43,17 +43,10 @@ func TestRabbitmqModel_Subscribeddffdb(t *testing.T) {
 		go func() {
 			task := NewLLRpcServer("amqp://admin:admin@182.92.84.229:5672/")
 			task.Router("rpc_queue1", 1000000, func(delivery amqp.Delivery) ([]byte, bool) {
-				//t.Log("时间",E取现行时间().E时间到文本(""), "收到任务数据")
-
 				n := E到整数(E到文本(delivery.Body))
-				//log.Printf(" [.] fib(%d)", n)
 				时间统计 := coreUtil.New时间统计类()
-
 				response := fib(int(n))
-
 				t.Log("收到任务数据", E到文本(delivery.Body), "rpc_queue1计算结果为", E到文本(response), "耗时", 时间统计.E取秒())
-				//E延时(5*1000)
-
 				return E到字节集(E到文本(response) + "," + 时间统计.E取秒()), true
 			})
 		}()

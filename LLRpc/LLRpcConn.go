@@ -19,6 +19,8 @@ type LLRpcConn struct {
 	isConnected    bool
 	reconnectCount int
 	ReceiveChan    chan amqp.Delivery
+	qps            int
+	successFunc    func(mq *LLRpcConn) //连接成功后回调函数
 }
 
 const (
@@ -33,14 +35,16 @@ var (
 	errAlreadyClosed = errors.New("already closed: not connected to the producer")
 )
 
-func NewMq(name string, addr string) *LLRpcConn {
+func NewMq(name string, qps int, addr string, success func(mq *LLRpcConn)) *LLRpcConn {
 	mq := LLRpcConn{
 		logger: log.New(os.Stdout, "", log.LstdFlags),
 		name:   name,
+		qps:    qps,
 		done:   make(chan bool),
 	}
 	mq.reconnectCount = 0
 	mq.ReceiveChan = make(chan amqp.Delivery)
+	mq.successFunc = success
 	go mq.handleReconnect(addr)
 	return &mq
 }
@@ -74,22 +78,39 @@ func (mq *LLRpcConn) connect(addr string) bool {
 		return false
 	}
 	ch.Confirm(false)
-	_, err = ch.QueueDeclare(
-		mq.name,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return false
-	}
+	//_, err = ch.QueueDeclare(
+	//	mq.name,
+	//	false,
+	//	false,
+	//	false,
+	//	false,
+	//	nil,
+	//)
+	//if err != nil {
+	//	return false
+	//}
 	mq.changeConnection(conn, ch)
 	mq.isConnected = true
 	mq.reconnectCount = 0
 	log.Println("Connected!")
+	mq.successFunc(mq)
 	return true
+}
+
+func (mq *LLRpcConn) QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) bool {
+	_, err := mq.channel.QueueDeclare(
+		name,
+		durable,
+		autoDelete,
+		exclusive,
+		noWait,
+		args,
+	)
+	if err != nil {
+		return false
+	}
+	return true
+
 }
 
 // 监听Rabbit channel的状态
@@ -249,6 +270,7 @@ func (mq *LLRpcConn) UnsafeReceive() (<-chan amqp.Delivery, error) {
 	if !mq.isConnected {
 		return nil, errNotConnected
 	}
+	mq.channel.Qos(mq.qps, 0, false)
 	return mq.channel.Consume(mq.name, "", true, false, false, false, nil)
 }
 
@@ -271,7 +293,9 @@ func (mq *LLRpcConn) Close() error {
 }
 
 func main() {
-	producer := NewMq("rpc_queue1", "amqp://admin:admin@182.92.84.229:5672/")
+	producer := NewMq("rpc_queue1", 1, "amqp://admin:admin@182.92.84.229:5672/", func(mq *LLRpcConn) {
+
+	})
 	producer.Receive()
 	//fmt.Println("over")
 	//
