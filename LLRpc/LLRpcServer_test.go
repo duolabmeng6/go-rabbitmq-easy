@@ -67,10 +67,11 @@ func TestRabbitmqModel_Subscribeddffdb(t *testing.T) {
 				时间统计 := coreUtil.New时间统计类()
 				//response := fib(int(n))
 
-				E延时(3)
+				//E延时(3)
 				//t.Log("收到任务数据", E到文本(delivery.Body), "rpc_queue1计算结果为", "耗时", 时间统计.E取秒())
 
 				return E到字节集(E到文本(delivery.Body) + "," + 时间统计.E取秒() + "," + E到文本(E取现行时间().E取时间戳())), true
+
 			})
 		}()
 	}

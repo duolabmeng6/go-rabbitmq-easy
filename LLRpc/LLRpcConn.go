@@ -132,7 +132,7 @@ func (mq *LLRpcConn) Send(data []byte) error {
 	for {
 		err := mq.UnsafePush(data)
 		if err != nil {
-			mq.logger.Println("推送失败 ，重试中...")
+			mq.logger.Println("推送失败 ，重试中1...")
 			currentTime += 1
 			if currentTime < resendTime {
 				continue
@@ -149,7 +149,7 @@ func (mq *LLRpcConn) Send(data []byte) error {
 			}
 		case <-ticker.C:
 		}
-		mq.logger.Println("推送失败 ，重试中...")
+		mq.logger.Println("推送失败 ，重试中2...")
 	}
 }
 
@@ -171,7 +171,7 @@ func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, ms
 	for {
 		err := mq.UnsafePush3(exchange, key, mandatory, immediate, msg)
 		if err != nil {
-			mq.logger.Println("推送失败 ，重试中...")
+			mq.logger.Println("推送失败 ，重试中3...")
 			currentTime += 1
 			if currentTime < resendTime {
 				continue
@@ -188,7 +188,7 @@ func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, ms
 			}
 		case <-ticker.C:
 		}
-		mq.logger.Println("推送失败 ，重试中...")
+		mq.logger.Println("推送失败 ，重试中4...")
 	}
 }
 
