@@ -25,7 +25,7 @@ type LLRpcConn struct {
 
 const (
 	reconnectDelay         = 2 * time.Second // 连接断开后多久重连
-	MaxWaitConnErrorNumber = 5               // 调用推送命令时,连接断开后 等待多少次重连失败 返回错误
+	MaxWaitConnErrorNumber = 10              // 调用推送命令时,连接断开后 等待多少次重连失败 返回错误
 	resendDelay            = 2 * time.Second // 消息发送失败后，多久重发
 	resendTime             = 6               // 消息重发次数
 )
@@ -54,7 +54,7 @@ func NewMq(name string, qps int, addr string, success func(mq *LLRpcConn)) *LLRp
 func (mq *LLRpcConn) handleReconnect(addr string) {
 	for {
 		mq.isConnected = false
-		log.Println("Attempting to connect")
+		log.Println("正在连接")
 		for !mq.connect(addr) {
 			log.Println("连接失败，重试中...")
 			time.Sleep(reconnectDelay)
@@ -92,7 +92,7 @@ func (mq *LLRpcConn) connect(addr string) bool {
 	mq.changeConnection(conn, ch)
 	mq.isConnected = true
 	mq.reconnectCount = 0
-	log.Println("Connected!")
+	log.Println("连接成功")
 	mq.successFunc(mq)
 	return true
 }
@@ -144,7 +144,7 @@ func (mq *LLRpcConn) Send(data []byte) error {
 		select {
 		case confirm := <-mq.notifyConfirm:
 			if confirm.Ack {
-				mq.logger.Println("推送成功!")
+				//mq.logger.Println("推送成功!")
 				return nil
 			}
 		case <-ticker.C:
@@ -155,7 +155,7 @@ func (mq *LLRpcConn) Send(data []byte) error {
 
 func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	if !mq.isConnected {
-		for i := 0; i < MaxWaitConnErrorNumber; i++ {
+		for i := 1; i <= MaxWaitConnErrorNumber; i++ {
 			mq.logger.Println("等待连接服务器", i, "次")
 			time.Sleep(reconnectDelay)
 			if mq.isConnected {
@@ -182,7 +182,7 @@ func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, ms
 		select {
 		case confirm := <-mq.notifyConfirm:
 			if confirm.Ack {
-				mq.logger.Println("推送成功!")
+				//mq.logger.Println("推送成功!")
 				return nil
 			}
 		case <-ticker.C:
@@ -271,7 +271,13 @@ func (mq *LLRpcConn) UnsafeReceive() (<-chan amqp.Delivery, error) {
 		return nil, errNotConnected
 	}
 	mq.channel.Qos(mq.qps, 0, false)
-	return mq.channel.Consume(mq.name, "", true, false, false, false, nil)
+	return mq.channel.Consume(mq.name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil)
 }
 
 // 关闭连接/信道

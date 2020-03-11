@@ -103,6 +103,8 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 			ReplyTo:       this.listenQueueName,
 			Body:          data,
 		})
+	core.E调试输出(err)
+
 	failOnError(err, "Failed to publish a message")
 
 	value, _ := this.waitResult(corrId, timeOut)
