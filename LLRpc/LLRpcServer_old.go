@@ -1,18 +1,19 @@
-package RabbitmqEasy
+package LLRpc
 
 import (
 	"github.com/streadway/amqp"
 )
 
-type LLRpcServer struct {
-	conn *amqp.Connection
-	ch   *amqp.Channel
-	q    amqp.Queue
-	link string
+type LLRpcServerOld struct {
+	conn       *amqp.Connection
+	ch         *amqp.Channel
+	q          amqp.Queue
+	link       string
+	connNotify chan *amqp.Error
 }
 
-func NewLLRpcServer(link string) *LLRpcServer {
-	this := new(LLRpcServer)
+func NewLLRpcServerOld(link string) *LLRpcServerOld {
+	this := new(LLRpcServerOld)
 	this.link = link
 
 	this.Init()
@@ -20,7 +21,7 @@ func NewLLRpcServer(link string) *LLRpcServer {
 }
 
 //连接
-func (this *LLRpcServer) Init() *LLRpcServer {
+func (this *LLRpcServerOld) Init() *LLRpcServerOld {
 	var err error
 	//连接队列
 	this.conn, err = amqp.Dial(this.link)
@@ -32,12 +33,15 @@ func (this *LLRpcServer) Init() *LLRpcServer {
 		this.ch, err = this.conn.Channel()
 		failOnError(err, "Failed to open a channel")
 
+		this.connNotify = this.conn.NotifyClose(make(chan *amqp.Error))
+
 	}
+
 	return this
 }
 
 //注册函数
-func (this *LLRpcServer) Router(Path string, qps int, fn func(amqp.Delivery) ([]byte, bool)) {
+func (this *LLRpcServerOld) Router(Path string, qps int, fn func(amqp.Delivery) ([]byte, bool)) {
 	var err error
 
 	arg := make(map[string]interface{}, 3)
@@ -91,7 +95,7 @@ func (this *LLRpcServer) Router(Path string, qps int, fn func(amqp.Delivery) ([]
 }
 
 //回调结果
-func (this *LLRpcServer) ReturnResult(d amqp.Delivery, data []byte) {
+func (this *LLRpcServerOld) ReturnResult(d amqp.Delivery, data []byte) {
 	err := this.ch.Publish(
 		"",        // exchange
 		d.ReplyTo, // routing key

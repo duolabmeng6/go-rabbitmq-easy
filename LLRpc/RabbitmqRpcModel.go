@@ -1,4 +1,4 @@
-package RabbitmqEasy
+package LLRpc
 
 import (
 	"github.com/duolabmeng6/goefun/coreUtil"

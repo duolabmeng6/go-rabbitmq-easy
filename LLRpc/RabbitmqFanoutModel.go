@@ -1,4 +1,4 @@
-package RabbitmqEasy
+package LLRpc
 
 import (
 	"github.com/streadway/amqp"
