@@ -24,9 +24,9 @@ type LLRpcConn struct {
 }
 
 const (
-	reconnectDelay         = 2 * time.Second // 连接断开后多久重连
-	MaxWaitConnErrorNumber = 10              // 调用推送命令时,连接断开后 等待多少次重连失败 返回错误
-	resendDelay            = 2 * time.Second // 消息发送失败后，多久重发
+	reconnectDelay         = 1 * time.Second // 连接断开后多久重连
+	MaxWaitConnErrorNumber = 1               // 调用推送命令时,连接断开后 等待多少次重连失败 返回错误
+	resendDelay            = 1 * time.Second // 消息发送失败后，多久重发
 	resendTime             = 6               // 消息重发次数
 )
 
