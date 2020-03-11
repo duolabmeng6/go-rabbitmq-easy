@@ -1,6 +1,7 @@
 package LLRpc
 
 import (
+	"errors"
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/duolabmeng6/goefun/coreUtil"
 	"github.com/streadway/amqp"
@@ -103,13 +104,16 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 			ReplyTo:       this.listenQueueName,
 			Body:          data,
 		})
-	core.E调试输出(err)
+	//core.E调试输出(err)
 
 	failOnError(err, "Failed to publish a message")
 
-	value, _ := this.waitResult(corrId, timeOut)
+	value, flag := this.waitResult(corrId, timeOut)
+	if flag == false {
+		err = errors.New(core.E到文本(value))
+	}
 
-	return value, nil
+	return value, err
 }
 
 //等待任务结果
