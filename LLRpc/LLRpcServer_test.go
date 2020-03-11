@@ -18,9 +18,10 @@ func TestRabbitmqModel_Publishddaaaa(t *testing.T) {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
-
+			//提交的时候写log
 			res, err := task.Call("rpc_queue1", E到字节集("10,"+E到文本(E取现行时间().E取时间戳())), 10)
 			failOnError(err, "Failed to handle RPC request")
+			//有结果的时候写log
 			E调试输出("发送数据 超时10", "返回结果", E到文本(res))
 
 			res, err = task.Call("rpc_queue1", E到字节集("2,"+E到文本(E取现行时间().E取时间戳())), 2)

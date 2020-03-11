@@ -223,11 +223,11 @@ func (mq *LgMq) Close() error {
 
 func main() {
 	producer := NewMq("rpc_queue1", "amqp://admin:admin@182.92.84.229:5672/")
-	producer.Receive()
+	//producer.Receive()
 	//fmt.Println("over")
 	//
-	//for {
-	//	producer.Send([]byte("6666"))
-	//}
+	for {
+		producer.Send([]byte("6666"))
+	}
 
 }
