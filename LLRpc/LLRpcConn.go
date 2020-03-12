@@ -154,24 +154,11 @@ func (mq *LLRpcConn) Send(data []byte) error {
 }
 
 func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
-	if !mq.isConnected {
-		return errors.New("推送失败，未连接到服务器")
-		for i := 1; i <= MaxWaitConnErrorNumber; i++ {
-			mq.logger.Println("等待连接服务器", i, "次")
-			time.Sleep(reconnectDelay)
-			if mq.isConnected {
-				break
-			}
-		}
-		if !mq.isConnected {
-			return errors.New("推送失败，未连接到服务器")
-		}
-	}
 	var currentTime = 0
 	for {
-		err := mq.UnsafePush3(exchange, key, mandatory, immediate, msg)
+		err := mq.channel.Publish(exchange, key, mandatory, immediate, msg)
 		if err != nil {
-			mq.logger.Println("推送失败 ，重试中3...")
+			mq.logger.Println("推送失败 ，重试中3...", err)
 			currentTime += 1
 			if currentTime < resendTime {
 				continue
@@ -188,7 +175,7 @@ func (mq *LLRpcConn) Publish(exchange, key string, mandatory, immediate bool, ms
 			}
 		case <-ticker.C:
 		}
-		mq.logger.Println("推送失败 ，重试中4...")
+		mq.logger.Println("推送失败 ，重试中4...", err)
 	}
 }
 
