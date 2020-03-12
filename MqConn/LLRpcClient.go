@@ -79,10 +79,13 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 		timeOut = 60
 	}
 	corrId := coreUtil.E取uuid()
+
+	//注册通道
 	mychan := this.returnChan(corrId)
 
 	go this.sendConn.Publish(Path, corrId, data, this.listenQueueName)
 
+	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, corrId, timeOut)
 	if flag == false {
 		err = errors.New(core.E到文本(value))

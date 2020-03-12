@@ -20,7 +20,7 @@ func TestNewLLRpcServer(t *testing.T) {
 		return true
 	}, 1000)
 
-	RpcServer.Router("func1", 1000, func(messages *message.Message) ([]byte, bool) {
+	RpcServer.Router("func1", 500, func(messages *message.Message) ([]byte, bool) {
 		successCount.Add(1)
 
 		msg := string(messages.Payload)
@@ -43,9 +43,9 @@ func TestNewLLRpcClient(t *testing.T) {
 		return true
 	}, 1000)
 
-	线程池 := New线程池(2000)
+	线程池 := New线程池(1000)
 
-	for i := 1; i <= 10000*10; i++ {
+	for i := 1; i <= 10000*100; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()

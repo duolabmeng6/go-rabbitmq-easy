@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/duolabmeng6/goefun/core"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
@@ -38,12 +39,16 @@ func (this *LLRpcConn) Publish(queue string, UUID string, data []byte, repTo str
 		msg.Metadata["repTo"] = repTo
 	}
 	//panic: cannot open channel: Exception (504) Reason: "channel id space exhausted"
-
-	if err := this.publisher.Publish(queue, msg); err != nil {
-		//panic("Publish " + err.Error())
-		fmt.Println("Publish " + err.Error())
-
+	for {
+		if err := this.publisher.Publish(queue, msg); err != nil {
+			//panic("Publish " + err.Error())
+			fmt.Println("重试 Publish " + err.Error())
+			core.E延时(2000)
+		} else {
+			break
+		}
 	}
+
 }
 
 func (this *LLRpcConn) Subscribe(queue string, qos int, fn func(<-chan *message.Message)) {
