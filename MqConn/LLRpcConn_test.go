@@ -20,7 +20,7 @@ func TestNewLLRpcServer(t *testing.T) {
 		return true
 	}, 1000)
 
-	RpcServer.Router("func1", 500, func(messages *message.Message) ([]byte, bool) {
+	RpcServer.Router("func1", 1000, func(messages *message.Message) ([]byte, bool) {
 		successCount.Add(1)
 
 		msg := string(messages.Payload)
@@ -52,7 +52,7 @@ func TestNewLLRpcClient(t *testing.T) {
 			stratCount.Add(1)
 			//提交的时候写log
 
-			res, err := RpcClient.Call("func1", E到字节集("hello"), 30)
+			res, err := RpcClient.Call("func1", E到字节集("hello"), 10)
 			//E调试输出(E到文本(res), err)
 			if E到文本(res) != "hello ok" {
 				E调试输出("调用错误", "返回结果", E到文本(res), "错误提示", err)

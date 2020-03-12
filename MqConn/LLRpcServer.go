@@ -24,9 +24,9 @@ func (this *LLRpcServer) Router(Path string, qos int, fn func(messages *message.
 
 	this.receive.Subscribe(Path, qos, func(messages <-chan *message.Message) {
 		for msg := range messages {
+			msg.Ack()
 			//开启协程处理任务
 			go func(msg *message.Message) {
-				msg.Ack()
 
 				data, _ := fn(msg)
 
