@@ -5,9 +5,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/duolabmeng6/goefun/coreUtil"
-	os "github.com/duolabmeng6/goefun/os/定时任务"
-	"github.com/gogf/gf/container/gtype"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -42,18 +39,18 @@ func NewLLRpcClient(link string) *LLRpcClient {
 //开始调用结果监听队列
 
 func (this *LLRpcClient) listen() {
-	successCount := gtype.NewInt()
-	os.E时钟_创建(func() bool {
-		core.E调试输出("回调结果接收数量", successCount.Val(), "协程数量", runtime.NumGoroutine())
-		return true
-	}, 1000)
+	//successCount := gtype.NewInt()
+	//os.E时钟_创建(func() bool {
+	//	core.E调试输出("回调结果接收数量", successCount.Val(), "协程数量", runtime.NumGoroutine())
+	//	return true
+	//}, 1000)
 
 	this.listenQueueName = "listen_result_" + coreUtil.E取uuid()
 
-	core.E调试输出("订阅回调结果队列", this.listenQueueName)
-	this.receive.Subscribe(this.listenQueueName, 100, func(messages <-chan *message.Message) {
+	//core.E调试输出("订阅回调结果队列", this.listenQueueName)
+	this.receive.Subscribe(this.listenQueueName, 10000, func(messages <-chan *message.Message) {
 		for msg := range messages {
-			successCount.Add(1)
+			//successCount.Add(1)
 
 			//log.Printf("process_client received message: %s, payload: %s", msg.UUID, string(msg.Payload))
 
@@ -83,7 +80,7 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 	//注册通道
 	mychan := this.returnChan(corrId)
 
-	go this.sendConn.Publish(Path, corrId, data, this.listenQueueName)
+	this.sendConn.Publish(Path, corrId, data, this.listenQueueName)
 
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, corrId, timeOut)
@@ -91,6 +88,14 @@ func (this *LLRpcClient) Call(Path string, data []byte, timeOut int64) (res []by
 		err = errors.New(core.E到文本(value))
 	}
 	return value, err
+}
+
+//发布
+func (this *LLRpcClient) TestPush(Path string, data []byte, timeOut int64) error {
+
+	this.sendConn.Publish(Path, "", data, this.listenQueueName)
+
+	return nil
 }
 
 func (this *LLRpcClient) returnChan(key string) chan []byte {

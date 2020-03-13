@@ -28,7 +28,7 @@ func (this *LLRpcServer) Router(Path string, qos int, fn func(messages *message.
 			//开启协程处理任务
 			go func(msg *message.Message) {
 
-				data, _ := fn(msg)
+				data, flag := fn(msg)
 
 				//core.E调试输出(
 				//	"收到消息", core.E到文本(msg.Payload),
@@ -36,8 +36,9 @@ func (this *LLRpcServer) Router(Path string, qos int, fn func(messages *message.
 				//	"返回结果队列", msg.Metadata["repTo"],
 				//	"返回标志", msg.UUID,
 				//)
-
-				this.sendConn.Publish(msg.Metadata["repTo"], msg.UUID, data, "")
+				if flag {
+					this.sendConn.Publish(msg.Metadata["repTo"], msg.UUID, data, "")
+				}
 
 			}(msg)
 		}
