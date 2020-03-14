@@ -22,10 +22,10 @@ func TestServer(t *testing.T) {
 
 func TestClient(t *testing.T) {
 	client := NewLRpcRedisClient("127.0.0.1:6379")
-	for i := 0; i < 10000; i++ {
-		E调试输出("测试调用函数 func1")
+	for i := 0; i < 100; i++ {
+		E调试输出("调用函数 func1")
 		ret, err := client.Call("func1", "hello")
-		E调试输出("测试调用函数 func1 结果", ret.Result, err)
+		E调试输出("func1 结果", ret.Result, err)
 	}
 }
 

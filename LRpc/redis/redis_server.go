@@ -97,7 +97,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 			if len(ret) == 0 {
 			} else {
 				json.Unmarshal([]byte(ret[1]), &taskData)
-				//core.E调试输出("收到数据", taskData)
+				core.E调试输出("收到数据", taskData)
 				fn(taskData)
 			}
 		}
@@ -146,10 +146,10 @@ func (this *LRpcRedisServer) Router(funcName string, fn func(TaskData) (string, 
 
 		redata, flag := fn(data)
 		data.Result = redata
-		//core.E调试输出("处理完成", data)
+		core.E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
-			this.publish(data.Channel, &data)
+			this.publish(data.ReportTo, &data)
 		}
 
 	})

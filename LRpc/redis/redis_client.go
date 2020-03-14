@@ -145,12 +145,14 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 }
 
 func (this *LRpcRedisClient) listen() {
-	core.E调试输出("注册回调结果监听", "return")
-	this.subscribe("return", func(data TaskData) {
-		//core.E调试输出("收到回调结果:", data)
-		this.returnChan(data.UUID, data)
+	go func() {
+		core.E调试输出("注册回调结果监听", "return")
+		this.subscribe("return", func(data TaskData) {
+			core.E调试输出("收到回调结果:", data)
+			this.returnChan(data.UUID, data)
 
-	})
+		})
+	}()
 
 }
 
@@ -168,13 +170,14 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 	//任务加入时间
 	taskData.StartTime = efun.E取毫秒()
 	//任务完成以后回调的频道名称
-	taskData.Channel = "return"
+	taskData.ReportTo = "return"
 
 	//注册通道
 	mychan := this.newChan(taskData.UUID)
 
 	this.publish(&taskData)
 
+	core.E调试输出("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, 10)
 	if flag == false {
@@ -193,7 +196,6 @@ func (this *LRpcRedisClient) newChan(key string) chan TaskData {
 }
 
 func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
-
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()

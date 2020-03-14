@@ -2,10 +2,13 @@ package LRpc
 
 //调用任务的结构
 type TaskData struct {
-	//任务id 回调函数id
+	//函数名称
 	Fun string `json:"fun"`
+	//成功后返回给谁
+	ReportTo string `json:"report_to"`
 	//uuid标识
 	UUID string `json:"uuid"`
+
 	//任务数据
 	Data string `json:"data"`
 	//加入任务时间
@@ -16,8 +19,6 @@ type TaskData struct {
 	Result string `json:"result"`
 	//完成时间
 	CompleteTime int64 `json:"complete_time"`
-	//发布频道
-	Channel string `json:"channel"`
 }
 type LRpcPubSub interface {
 	//初始化连接
