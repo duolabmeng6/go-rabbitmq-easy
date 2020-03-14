@@ -51,7 +51,7 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	core.E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
-		MaxIdle:     1000,
+		MaxIdle:     100,
 		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
@@ -152,6 +152,36 @@ func (this *LRpcRedisClient) listen() {
 
 }
 
+func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error) {
+	var err error
+	taskData := TaskData{}
+	//任务id
+	taskData.Fun = funcName
+	//UUID
+	taskData.UUID = coreUtil.E取uuid()
+	//任务数据
+	taskData.Data = data
+	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
+	taskData.TimeOut = 10
+	//任务加入时间
+	taskData.StartTime = efun.E取毫秒()
+	//任务完成以后回调的频道名称
+	taskData.Channel = "return"
+
+	//注册通道
+	mychan := this.newChan(taskData.UUID)
+
+	this.publish(&taskData)
+
+	//等待通道的结果回调
+	value, flag := this.waitResult(mychan, taskData.UUID, 10)
+	if flag == false {
+		err = errors.New(core.E到文本(value))
+	}
+
+	return value, err
+}
+
 func (this *LRpcRedisClient) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
@@ -205,34 +235,4 @@ func (this *LRpcRedisClient) waitResult(mychan chan TaskData, key string, timeOu
 		return TaskData{}, false
 	}
 	return value, true
-}
-
-func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error) {
-	var err error
-	taskData := TaskData{}
-	//任务id
-	taskData.Fun = funcName
-	//UUID
-	taskData.UUID = coreUtil.E取uuid()
-	//任务数据
-	taskData.Data = data
-	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
-	taskData.TimeOut = 10
-	//任务加入时间
-	taskData.StartTime = efun.E取毫秒()
-	//任务完成以后回调的频道名称
-	taskData.Channel = "return"
-
-	//注册通道
-	mychan := this.newChan(taskData.UUID)
-
-	this.publish(&taskData)
-
-	//等待通道的结果回调
-	value, flag := this.waitResult(mychan, taskData.UUID, 10)
-	if flag == false {
-		err = errors.New(core.E到文本(value))
-	}
-
-	return value, err
 }

@@ -28,6 +28,7 @@ func TestClient(t *testing.T) {
 	}
 }
 
+//服务端处理能力测试
 func TestServerTongji(t *testing.T) {
 
 	successCount := gtype.NewInt()
@@ -77,6 +78,7 @@ func TestClientTongjiQps(t *testing.T) {
 	select {}
 }
 
+//客户端统计
 func TestCientTongji(t *testing.T) {
 	client := NewLRpcRedisClient("aa")
 
@@ -105,7 +107,7 @@ func TestCientTongji(t *testing.T) {
 
 	线程池 := New线程池(10)
 
-	for i := 1; i <= 10000*1; i++ {
+	for i := 1; i <= 1000*1; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()

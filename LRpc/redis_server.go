@@ -40,7 +40,7 @@ func NewLRpcRedisServer(link string) *LRpcRedisServer {
 func (this *LRpcRedisServer) init() *LRpcRedisServer {
 	core.E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
-		MaxIdle:     1000,
+		MaxIdle:     100,
 		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
