@@ -14,11 +14,13 @@ type LRpcRedisServer struct {
 
 	//redis客户端
 	redisPool *redis.Pool
+	link      string
 }
 
 //初始化消息队列
 func NewLRpcRedisServer(link string) *LRpcRedisServer {
 	this := new(LRpcRedisServer)
+	this.link = link
 	this.init()
 
 	//t := &TaskData{
@@ -46,7 +48,7 @@ func (this *LRpcRedisServer) init() *LRpcRedisServer {
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
 		Dial: func() (redis.Conn, error) {
-			con, err := redis.Dial("tcp", "127.0.0.1:6379",
+			con, err := redis.Dial("tcp", this.link,
 				//redis.DialPassword(conf["Password"].(string)),
 				redis.DialDatabase(int(0)),
 				redis.DialConnectTimeout(240*time.Second),

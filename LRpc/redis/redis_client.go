@@ -22,12 +22,13 @@ type LRpcRedisClient struct {
 	lock sync.RWMutex
 	//等待消息回调的通道
 	keychan map[string]chan TaskData
+	link    string
 }
 
 //初始化消息队列
 func NewLRpcRedisClient(link string) *LRpcRedisClient {
 	this := new(LRpcRedisClient)
-
+	this.link = link
 	this.keychan = map[string]chan TaskData{}
 
 	this.init()
@@ -57,7 +58,7 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
 		Dial: func() (redis.Conn, error) {
-			con, err := redis.Dial("tcp", "127.0.0.1:6379",
+			con, err := redis.Dial("tcp", this.link,
 				//redis.DialPassword(conf["Password"].(string)),
 				redis.DialDatabase(int(0)),
 				redis.DialConnectTimeout(240*time.Second),

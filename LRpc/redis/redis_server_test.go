@@ -11,7 +11,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcRedisServer("aa")
+	server := NewLRpcRedisServer("127.0.0.1:6379")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		E调试输出("test", data.Data)
 
@@ -21,7 +21,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcRedisClient("aa")
+	client := NewLRpcRedisClient("127.0.0.1:6379")
 	for i := 0; i < 10000; i++ {
 		E调试输出("测试调用函数 func1")
 		ret, err := client.Call("func1", "hello")
@@ -52,7 +52,7 @@ func TestServerTongji(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	server := NewLRpcRedisServer("aa")
+	server := NewLRpcRedisServer("127.0.0.1:6379")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		successCount.Add(1)
 
@@ -62,7 +62,7 @@ func TestServerTongji(t *testing.T) {
 }
 
 func TestClientTongjiQps(t *testing.T) {
-	client := NewLRpcRedisClient("aa")
+	client := NewLRpcRedisClient("127.0.0.1:6379")
 
 	线程池 := New线程池(10)
 	for {
@@ -81,7 +81,7 @@ func TestClientTongjiQps(t *testing.T) {
 
 //客户端统计
 func TestCientTongji(t *testing.T) {
-	client := NewLRpcRedisClient("aa")
+	client := NewLRpcRedisClient("127.0.0.1:6379")
 
 	时间统计 := New时间统计类()
 
