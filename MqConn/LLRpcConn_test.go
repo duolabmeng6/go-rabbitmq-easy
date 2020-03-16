@@ -91,7 +91,7 @@ func TestNewLLRpcServer(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	RpcServer.Router("func1", 10000, func(messages *message.Message) ([]byte, bool) {
+	RpcServer.Router("func1", 1000, func(messages *message.Message) ([]byte, bool) {
 		successCount.Add(1)
 
 		msg := string(messages.Payload)
