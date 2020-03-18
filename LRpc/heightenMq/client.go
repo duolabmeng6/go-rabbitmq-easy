@@ -1,4 +1,4 @@
-package rabbitmq
+package heightenMq
 
 import (
 	"context"
@@ -12,8 +12,14 @@ import (
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/duolabmeng6/goefun/coreUtil"
 	"github.com/gogf/gf/container/gtype"
+	amqp2 "github.com/streadway/amqp"
+	"log"
 	"sync"
 	"time"
+)
+
+var (
+	clientNotifyClose chan *amqp2.Error
 )
 
 type LRpcRedisClient struct {
@@ -27,12 +33,16 @@ type LRpcRedisClient struct {
 	amqpURI string
 
 	amqpConfig amqp.Config
-	publisher  *amqp.Publisher
-	pushCount  *gtype.Int
+	//	publisher  *amqp.Publisher
+
+	pushCount *gtype.Int
+	conn      *amqp2.Connection
+	channel   *amqp2.Channel
 }
 
 //初始化消息队列
 func NewLRpcRedisClient(amqpURI string) *LRpcRedisClient {
+
 	this := new(LRpcRedisClient)
 	this.amqpURI = amqpURI
 	this.keychan = map[string]chan TaskData{}
@@ -47,6 +57,7 @@ func NewLRpcRedisClient(amqpURI string) *LRpcRedisClient {
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	core.E调试输出("连接到服务端")
 	var err error
+
 	this.amqpConfig = amqp.NewDurableQueueConfig(this.amqpURI)
 	this.amqpConfig.Consume.Exclusive = true
 	this.amqpConfig.Queue.AutoDelete = false
@@ -54,32 +65,102 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	this.amqpConfig.Queue.Durable = true
 	this.amqpConfig.Consume.NoRequeueOnNack = false
 	this.amqpConfig.Consume.NoWait = true
+	/*
+		this.publisher, err = amqp.NewPublisher(this.amqpConfig, watermill.NewStdLogger(false, false))
 
-	this.publisher, err = amqp.NewPublisher(this.amqpConfig, watermill.NewStdLogger(false, false))
-	if err != nil {
-		panic("NewLLRpcConn " + err.Error())
+		if err != nil {
+			panic("NewLLRpcConn " + err.Error())
+		}
+		if this.channel,err = this.publisher.Connection().Channel() ;err != nil{
+			panic("channel" + err.Error())
+		}
+
+		clientNotifyClose = make(chan * amqp2.Error)
+		this.channel.NotifyClose(clientNotifyClose);
+
+		this.pushCount = gtype.NewInt()
+	*/
+
+	if this.conn, err = amqp2.Dial("amqp://admin:admin@182.92.84.229:5672/"); err != nil {
+		panic("Final to conn  :" + err.Error())
 	}
 
-	this.pushCount = gtype.NewInt()
-	//this.publisher.NewChannel()
+	if this.channel, err = this.conn.Channel(); err != nil {
+		panic("Final to channel :" + err.Error())
+	}
+	clientNotifyClose = make(chan *amqp2.Error)
+	this.channel.NotifyClose(clientNotifyClose)
+
+	//q, err := this.channel.QueueDeclare("rpc_queue1", false, false, false, false, nil)
+
+	go this.handleReconnect()
 	return this
 }
 
+func (this *LRpcRedisClient) handleReconnect() {
+	for err := range clientNotifyClose {
+
+		log.Println("断开了连接,", err.Code)
+		core.E延时(int64(ReconnectDelay))
+		this.init()
+	}
+}
+
 //发布
-func (this *LRpcRedisClient) publish(taskData *TaskData) error {
+func (this *LRpcRedisClient) publish(taskData *TaskData) (err error) {
 	//core.E调试输出("发布")
 	jsondata, _ := json.Marshal(taskData)
 	msg := message.NewMessage(taskData.UUID, jsondata)
+	/*
+		for {
+			if err := this.publisher.Publish(taskData.Fun, msg); err != nil {
+				//panic("Publish " + err.Error())
+				core.E调试输出("重试 Publish " + err.Error())
+				core.E延时(5000)
+			} else {
+				break
+			}
+		}*/
+	m := Marshal(msg)
+	errCount := 0
 	for {
-		if err := this.publisher.Publish(taskData.Fun, msg); err != nil {
-			//panic("Publish " + err.Error())
+		if err = this.channel.Publish("", taskData.Fun, false, false, m); err != nil {
 			core.E调试输出("重试 Publish " + err.Error())
-			core.E延时(1000)
+			core.E延时(int64(ResendDelay))
+			if errCount < ResendCount {
+				errCount++
+			} else {
+				break
+			}
 		} else {
 			break
 		}
 	}
-	return nil
+	return
+}
+
+func Marshal(msg *message.Message) amqp2.Publishing {
+	headers := make(amqp2.Table, len(msg.Metadata)+1) // metadata + plus uuid
+
+	for key, value := range msg.Metadata {
+		headers[key] = value
+	}
+	headers[amqp.MessageUUIDHeaderKey] = msg.UUID
+
+	publishing := amqp2.Publishing{
+		Body:    msg.Payload,
+		Headers: headers,
+	}
+	/*
+		if !d.NotPersistentDeliveryMode {
+			publishing.DeliveryMode = amqp.Persistent
+		}
+
+		if d.PostprocessPublishing != nil {
+			publishing = d.PostprocessPublishing(publishing)
+		}*/
+
+	return publishing
 }
 
 //订阅

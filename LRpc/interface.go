@@ -1,5 +1,12 @@
 package LRpc
 
+var (
+	ResendCount    = 10    // 消息重发次数
+	ResendDelay    = 5000  // 消息发送失败后，多久重发
+	ReconnectDelay = 10000 // 连接断开后多久重连
+
+)
+
 //调用任务的结构
 type TaskData struct {
 	//函数名称

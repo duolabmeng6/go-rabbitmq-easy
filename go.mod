@@ -12,7 +12,7 @@ require (
 	github.com/furdarius/rabbitroutine v0.5.0
 	github.com/gogf/gf v1.11.5
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 )
