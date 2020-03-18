@@ -3,35 +3,80 @@ package heightenMq
 import (
 	"duolabmeng6/go-rabbitmq-easy/LRpc"
 	"fmt"
+	. "github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/coreUtil"
+	. "github.com/duolabmeng6/goefun/os/定时任务"
+	"github.com/gogf/gf/container/gtype"
+	"runtime"
 	"testing"
 )
 
 func TestClient(t *testing.T) {
-	client := NewLRpcRedisClient("amqp://admin:admin@182.92.84.229:5672/")
-	for i := 0; i < 10000; i++ {
-		go func() {
-			for i := 0; i < 10000; i++ {
-				fmt.Println("调用函数 func1")
-				ret, err := client.Call("func1", "hello", 3)
-				if err != nil {
-					fmt.Println("func1 调用错误", err)
+	successCount := gtype.NewInt()
+	errorCount := gtype.NewInt()
+	时间统计 := New时间统计类()
+	时间统计.E开始()
 
-					continue
+	E时钟_创建(func() bool {
+		E调试输出(
+			"客户端",
+			"成功数据", successCount.Val(),
+			"失败数量", errorCount.Val(),
+			"协程数量", runtime.NumGoroutine(),
+		)
+		return true
+	}, 1000)
+//amqp://admin:admin@182.92.84.229:5672/
+//amqp://guest:guest@127.0.0.1:5672/
+	client := NewLRpcRedisClient("amqp://guest:guest@127.0.0.1:5672/")
+	//等一会让监听结果的连上
+	E延时(1000)
+	线程池 := New线程池(100)
+	for i := 0; i < 100; i++ {
+		线程池.E加入任务()
+		go func() {
+			defer 线程池.E完成()
+			//fmt.Println("调用函数 func2")
+			ret, err := client.Call("func2", E到文本(E取现行时间().E取时间戳毫秒()), 10)
+			if err != nil {
+				fmt.Println("func2 调用错误", err)
+				errorCount.Add(1)
+			} else {
+				fmt.Println("func2 结果", ret.Result, err)
+				if ret.Result != "" {
+					successCount.Add(1)
 				}
-				fmt.Println("func1 结果", ret.Result, err)
 			}
 		}()
 	}
+
 	select {}
 }
 
 func TestServer(t *testing.T) {
-	server := NewLRpcRedisServer("amqp://admin:admin@182.92.84.229:5672/")
-	server.Router("func1", func(data LRpc.TaskData) (string, bool) {
-		fmt.Println("test", data.Data)
-		//E延时(6000)
+	successCount := gtype.NewInt()
+	时间统计 := New时间统计类()
+	时间统计.E开始()
 
-		return data.Data + " ok", true
+	E时钟_创建(func() bool {
+		E调试输出(
+			"服务端",
+			"成功数据", successCount.Val(),
+			"协程数量", runtime.NumGoroutine(),
+		)
+		return true
+	}, 1000)
+
+	server := NewLRpcRedisServer("amqp://guest:guest@127.0.0.1:5672/")
+	server.Router("func2", func(data LRpc.TaskData) (string, bool) {
+		successCount.Add(1)
+		//fmt.Println("test", data.Data)
+		//E延时(6000)
+		time := E到整数(data.Data)
+		nowtime := E取现行时间().E取时间戳毫秒()
+		str := nowtime - time
+
+		return E到文本(str), true
 	})
 	select {}
 }

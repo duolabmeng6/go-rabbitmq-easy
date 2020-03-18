@@ -38,6 +38,8 @@ type LRpcRedisClient struct {
 	pushCount *gtype.Int
 	conn      *amqp2.Connection
 	channel   *amqp2.Channel
+
+	receive_result_name string
 }
 
 //初始化消息队列
@@ -60,7 +62,7 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 
 	this.amqpConfig = amqp.NewDurableQueueConfig(this.amqpURI)
 	this.amqpConfig.Consume.Exclusive = true
-	this.amqpConfig.Queue.AutoDelete = false
+	this.amqpConfig.Queue.AutoDelete = true
 	this.amqpConfig.Consume.Qos.PrefetchCount = 100
 	this.amqpConfig.Queue.Durable = true
 	this.amqpConfig.Consume.NoRequeueOnNack = false
@@ -203,8 +205,10 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 
 func (this *LRpcRedisClient) listen() {
 	go func() {
-		core.E调试输出("注册回调结果监听", "return")
-		this.subscribe("return", func(data TaskData) {
+		this.receive_result_name = "receive_result_" + coreUtil.E取uuid()
+
+		core.E调试输出("注册回调结果监听", this.receive_result_name)
+		this.subscribe(this.receive_result_name, func(data TaskData) {
 			//core.E调试输出("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
@@ -227,7 +231,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (
 	//任务加入时间
 	taskData.StartTime = efun.E取毫秒()
 	//任务完成以后回调的频道名称
-	taskData.ReportTo = "return"
+	taskData.ReportTo = this.receive_result_name
 
 	//注册通道
 	mychan := this.newChan(taskData.UUID)

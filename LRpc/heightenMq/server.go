@@ -82,6 +82,7 @@ func (this *LRpcRedisServer) publish(taskData *TaskData) error {
 	jsondata, _ := json.Marshal(taskData)
 	msg := message.NewMessage(taskData.UUID, jsondata)
 	for {
+		//core.E调试输出(taskData.ReportTo)
 		if err := this.publisher.Publish(taskData.ReportTo, msg); err != nil {
 			//panic("Publish " + err.Error())
 			core.E调试输出("重试 Publish " + err.Error())
@@ -125,6 +126,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 			taskData := TaskData{}
 			json.Unmarshal(msg.Payload, &taskData)
 			//core.E调试输出("收到数据", taskData)
+
 			fn(taskData)
 		}(msg)
 	}

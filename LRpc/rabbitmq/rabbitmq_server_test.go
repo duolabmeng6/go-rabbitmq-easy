@@ -11,7 +11,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcRedisServer("amqp://admin:admin@182.92.84.229:5672/")
+	server := NewLRpcRedisServer("amqp://guest:guest@127.0.0.1:5672/")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		E调试输出("test", data.Data)
 		//E延时(6000)
@@ -22,7 +22,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcRedisClient("amqp://admin:admin@182.92.84.229:5672/")
+	client := NewLRpcRedisClient("amqp://guest:guest@127.0.0.1:5672/")
 	for i := 0; i < 10; i++ {
 		E调试输出("调用函数 func1")
 		ret, err := client.Call("func1", "hello", 3)
