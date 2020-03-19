@@ -4,19 +4,19 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LRpc"
 	"encoding/json"
 	"github.com/duolabmeng6/goefun/core"
-	amqp2 "github.com/streadway/amqp"
+	"github.com/streadway/amqp"
 	"log"
 )
 
 type LRpcRabbmit struct {
 	LRpcPubSub
 	amqpURI           string
-	conn              *amqp2.Connection
-	channel           *amqp2.Channel
-	clientNotifyClose chan *amqp2.Error
+	conn              *amqp.Connection
+	channel           *amqp.Channel
+	clientNotifyClose chan *amqp.Error
 
 	funcName string
-	msgs     <-chan amqp2.Delivery
+	msgs     <-chan amqp.Delivery
 	fn       func(TaskData)
 	success  func(channel *LRpcRabbmit)
 }
@@ -37,9 +37,9 @@ func (this *LRpcRabbmit) init() bool {
 	core.E调试输出("连接到服务端")
 	var err error
 
-	if this.conn, err = amqp2.Dial(this.amqpURI); err != nil {
+	if this.conn, err = amqp.Dial(this.amqpURI); err != nil {
 		//panic("Final to conn  :" + err.Error())
-		core.E调试输出("重连 amqp2.Dial")
+		core.E调试输出("重连 amqp.Dial")
 		core.E延时(int64(ReconnectDelay))
 
 		return this.init()
@@ -52,7 +52,7 @@ func (this *LRpcRabbmit) init() bool {
 		this.init()
 		return this.init()
 	}
-	this.clientNotifyClose = make(chan *amqp2.Error)
+	this.clientNotifyClose = make(chan *amqp.Error)
 	this.channel.NotifyClose(this.clientNotifyClose)
 	go this.handleReconnect()
 
@@ -80,7 +80,7 @@ func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err erro
 	jsondata, _ := json.Marshal(taskData)
 	errCount := 0
 	for {
-		if err = this.channel.Publish("", queueName, false, false, amqp2.Publishing{
+		if err = this.channel.Publish("", queueName, false, false, amqp.Publishing{
 			Body: jsondata,
 		}); err != nil {
 			core.E调试输出("重试 Publish " + err.Error())
