@@ -1,25 +1,14 @@
 package heightenMq
 
 import (
-	"context"
 	. "duolabmeng6/go-rabbitmq-easy/LRpc"
 	"encoding/json"
 	"errors"
-	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
-	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/duolabmeng6/efun/efun"
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/duolabmeng6/goefun/coreUtil"
-	"github.com/gogf/gf/container/gtype"
-	amqp2 "github.com/streadway/amqp"
-	"log"
 	"sync"
 	"time"
-)
-
-var (
-	clientNotifyClose chan *amqp2.Error
 )
 
 type LRpcRedisClient struct {
@@ -32,12 +21,8 @@ type LRpcRedisClient struct {
 	keychan map[string]chan TaskData
 	amqpURI string
 
-	amqpConfig amqp.Config
-	//	publisher  *amqp.Publisher
-
-	pushCount *gtype.Int
-	conn      *amqp2.Connection
-	channel   *amqp2.Channel
+	//发送用的
+	send *LRpcRabbmit
 
 	receive_result_name string
 }
@@ -58,155 +43,63 @@ func NewLRpcRedisClient(amqpURI string) *LRpcRedisClient {
 //连接服务器
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	core.E调试输出("连接到服务端")
-	var err error
+	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
-	this.amqpConfig = amqp.NewDurableQueueConfig(this.amqpURI)
-	this.amqpConfig.Consume.Exclusive = true
-	this.amqpConfig.Queue.AutoDelete = true
-	this.amqpConfig.Consume.Qos.PrefetchCount = 100
-	this.amqpConfig.Queue.Durable = true
-	this.amqpConfig.Consume.NoRequeueOnNack = false
-	this.amqpConfig.Consume.NoWait = true
-	/*
-		this.publisher, err = amqp.NewPublisher(this.amqpConfig, watermill.NewStdLogger(false, false))
-
-		if err != nil {
-			panic("NewLLRpcConn " + err.Error())
-		}
-		if this.channel,err = this.publisher.Connection().Channel() ;err != nil{
-			panic("channel" + err.Error())
-		}
-
-		clientNotifyClose = make(chan * amqp2.Error)
-		this.channel.NotifyClose(clientNotifyClose);
-
-		this.pushCount = gtype.NewInt()
-	*/
-
-	if this.conn, err = amqp2.Dial("amqp://admin:admin@182.92.84.229:5672/"); err != nil {
-		panic("Final to conn  :" + err.Error())
-	}
-
-	if this.channel, err = this.conn.Channel(); err != nil {
-		panic("Final to channel :" + err.Error())
-	}
-	clientNotifyClose = make(chan *amqp2.Error)
-	this.channel.NotifyClose(clientNotifyClose)
-
-	//q, err := this.channel.QueueDeclare("rpc_queue1", false, false, false, false, nil)
-
-	go this.handleReconnect()
+	})
 	return this
-}
-
-func (this *LRpcRedisClient) handleReconnect() {
-	for err := range clientNotifyClose {
-
-		log.Println("断开了连接,", err.Code)
-		core.E延时(int64(ReconnectDelay))
-		this.init()
-	}
 }
 
 //发布
 func (this *LRpcRedisClient) publish(taskData *TaskData) (err error) {
-	//core.E调试输出("发布")
-	jsondata, _ := json.Marshal(taskData)
-	msg := message.NewMessage(taskData.UUID, jsondata)
-	/*
-		for {
-			if err := this.publisher.Publish(taskData.Fun, msg); err != nil {
-				//panic("Publish " + err.Error())
-				core.E调试输出("重试 Publish " + err.Error())
-				core.E延时(5000)
-			} else {
-				break
-			}
-		}*/
-	m := Marshal(msg)
-	errCount := 0
-	for {
-		if err = this.channel.Publish("", taskData.Fun, false, false, m); err != nil {
-			core.E调试输出("重试 Publish " + err.Error())
-			core.E延时(int64(ResendDelay))
-			if errCount < ResendCount {
-				errCount++
-			} else {
-				break
-			}
-		} else {
-			break
-		}
-	}
-	return
-}
-
-func Marshal(msg *message.Message) amqp2.Publishing {
-	headers := make(amqp2.Table, len(msg.Metadata)+1) // metadata + plus uuid
-
-	for key, value := range msg.Metadata {
-		headers[key] = value
-	}
-	headers[amqp.MessageUUIDHeaderKey] = msg.UUID
-
-	publishing := amqp2.Publishing{
-		Body:    msg.Payload,
-		Headers: headers,
-	}
-	/*
-		if !d.NotPersistentDeliveryMode {
-			publishing.DeliveryMode = amqp.Persistent
-		}
-
-		if d.PostprocessPublishing != nil {
-			publishing = d.PostprocessPublishing(publishing)
-		}*/
-
-	return publishing
+	return this.send.Publish(taskData.Fun, taskData)
 }
 
 //订阅
 func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
-	core.E调试输出("订阅函数事件", funcName)
 
-	this.amqpConfig.Consume.Qos.PrefetchCount = 100
+	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
+		core.E调试输出("连接成功开始订阅队列")
+		q, err := this.channel.QueueDeclare(
+			funcName, // 队列名称
+			false,    // 是否需要持久化
+			true,     //是否自动删除，当最后一个消费者断开连接之后队列是否自动被删除
+			false,    // 如果为真 当连接关闭时connection.close()该队列是否会自动删除 其他通道channel是不能访问的
+			false,    // 是否等待服务器返回
+			nil,      // arguments
+		)
+		if err != nil {
+			core.E调试输出("QueueDeclare", err)
+		}
+		//监听队列
+		this.msgs, err = this.channel.Consume(
+			q.Name, // 消息要取得消息的队列名
+			"",     // 消费者标签
+			true,   // 服务器将确认 为true，使用者不应调用Delivery.Ack
+			false,  // true 服务器将确保这是唯一的使用者 为false时，服务器将公平地分配跨多个消费者交付。
+			false,  // no-local
+			false,  // true时，不要等待服务器确认请求和立即开始交货。如果不能消费，一个渠道将引发异常并关闭通道
+			nil,    // args
+		)
+		if err != nil {
+			core.E调试输出("Consume", err)
+		}
+		go func() {
+			for d := range this.msgs {
+				//收到任务创建协程执行
+				taskData := TaskData{}
+				json.Unmarshal(d.Body, &taskData)
+				//回调
+				fn(taskData)
+			}
+		}()
+	})
 
-	subscriber, err := amqp.NewSubscriber(
-		// This config is based on this example: https://www.rabbitmq.com/tutorials/tutorial-two-go.html
-		// It works as a simple queue.
-		//
-		// If you want to implement a Pub/Sub style service instead, check
-		// https://watermill.io/docs/pub-sub-implementations/#amqp-consumer-groups
-		this.amqpConfig,
-		watermill.NewStdLogger(false, false),
-	)
-
-	if err != nil {
-		panic("Subscribe " + err.Error())
-	}
-
-	messages, err := subscriber.Subscribe(context.Background(), funcName)
-	if err != nil {
-		panic("Subscribe2 " + err.Error())
-
-	}
-	for msg := range messages {
-		msg.Ack()
-		//开启协程处理任务
-		go func(msg *message.Message) {
-			taskData := TaskData{}
-			json.Unmarshal(msg.Payload, &taskData)
-			//core.E调试输出("收到数据", taskData)
-			fn(taskData)
-		}(msg)
-	}
 	return nil
 }
 
 func (this *LRpcRedisClient) listen() {
 	go func() {
 		this.receive_result_name = "receive_result_" + coreUtil.E取uuid()
-
 		core.E调试输出("注册回调结果监听", this.receive_result_name)
 		this.subscribe(this.receive_result_name, func(data TaskData) {
 			//core.E调试输出("收到回调结果:", data)
@@ -214,7 +107,6 @@ func (this *LRpcRedisClient) listen() {
 
 		})
 	}()
-
 }
 
 func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
