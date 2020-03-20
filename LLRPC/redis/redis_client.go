@@ -1,12 +1,11 @@
-package LRpc
+package redis
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"errors"
-	"github.com/duolabmeng6/efun/efun"
-	"github.com/duolabmeng6/goefun/core"
-	"github.com/duolabmeng6/goefun/coreUtil"
+	. "github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/coreUtil"
 	"github.com/gomodule/redigo/redis"
 	"sync"
 	"time"
@@ -41,8 +40,8 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 	//this.publish(t)
 	//
 	//this.subscribe("aaa", func(data TaskData) {
-	//	core.E调试输出("收到数据")
-	//	core.E调试输出(data)
+	//	E调试输出("收到数据")
+	//	E调试输出(data)
 	//
 	//})
 
@@ -51,7 +50,7 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 
 //连接服务器
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
-	core.E调试输出("连接到服务端")
+	E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
 		MaxIdle:     100,
 		MaxActive:   0,
@@ -76,17 +75,17 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 
 //发布
 func (this *LRpcRedisClient) publish(taskData *TaskData) error {
-	//core.E调试输出("发布")
+	//E调试输出("发布")
 
 	conn := this.redisPool.Get()
 	defer conn.Close()
 
 	jsondata, _ := json.Marshal(taskData)
-	//core.E调试输出(string(jsondata))
+	//E调试输出(string(jsondata))
 
 	_, err := conn.Do("lpush", taskData.Fun, string(jsondata))
 	if err != nil {
-		core.E调试输出("PUBLISH Error", err.Error())
+		E调试输出("PUBLISH Error", err.Error())
 	}
 
 	return nil
@@ -94,7 +93,7 @@ func (this *LRpcRedisClient) publish(taskData *TaskData) error {
 
 //订阅
 func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
-	core.E调试输出("订阅函数事件", funcName)
+	E调试输出("订阅函数事件", funcName)
 
 	go func() {
 		for {
@@ -106,7 +105,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 			ret, _ := redis.Strings(conn.Do("brpop", funcName, 10))
 			if len(ret) == 0 {
 			} else {
-				//core.E调试输出格式化("subscribe message: %s\n", ret[1])
+				//E调试输出格式化("subscribe message: %s\n", ret[1])
 
 				json.Unmarshal([]byte(ret[1]), &taskData)
 				fn(taskData)
@@ -120,7 +119,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	//	for {
 	//		switch v := psc.Receive().(type) {
 	//		case redis.Message:
-	//			core.E调试输出格式化("%s: message: %s\n", v.Channel, v.Data)
+	//			E调试输出格式化("%s: message: %s\n", v.Channel, v.Data)
 	//
 	//			taskData := TaskData{}
 	//			json.Unmarshal(TaskData( v.Data), &taskData)
@@ -128,9 +127,9 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	//			fn(taskData)
 	//
 	//		case redis.Subscription:
-	//			core.E调试输出格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
+	//			E调试输出格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
 	//		case error:
-	//			core.E调试输出("subscribe error", v)
+	//			E调试输出("subscribe error", v)
 	//			//return v
 	//
 	//			psc = redis.PubSubConn{Conn: this.redisPool.Get()}
@@ -146,9 +145,9 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 
 func (this *LRpcRedisClient) listen() {
 	go func() {
-		core.E调试输出("注册回调结果监听", "return")
+		E调试输出("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
-			core.E调试输出("收到回调结果:", data)
+			E调试输出("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -162,13 +161,13 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 	//任务id
 	taskData.Fun = funcName
 	//UUID
-	taskData.UUID = coreUtil.E取uuid()
+	taskData.UUID = E取uuid()
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
 	taskData.TimeOut = 10
 	//任务加入时间
-	taskData.StartTime = efun.E取毫秒()
+	taskData.StartTime = E取现行时间().E取毫秒()
 	//任务完成以后回调的频道名称
 	taskData.ReportTo = "return"
 
@@ -177,11 +176,11 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 
 	this.publish(&taskData)
 
-	core.E调试输出("uuid", taskData.UUID)
+	E调试输出("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, 10)
 	if flag == false {
-		err = errors.New(core.E到文本(value))
+		err = errors.New(E到文本(value))
 	}
 
 	return value, err

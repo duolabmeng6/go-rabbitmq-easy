@@ -2,7 +2,8 @@ package example
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
-	"github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/core"
+
 )
 
 type LRpcExampleServer struct {
@@ -27,8 +28,8 @@ func NewLRpcExampleServer(link string) *LRpcExampleServer {
 	//this.publish(t)
 	//
 	//this.subscribe("aaa", func(data TaskData) {
-	//	core.E调试输出("收到数据")
-	//	core.E调试输出(data)
+	//	E调试输出("收到数据")
+	//	E调试输出(data)
 	//
 	//})
 
@@ -37,43 +38,43 @@ func NewLRpcExampleServer(link string) *LRpcExampleServer {
 
 //连接服务器
 func (this *LRpcExampleServer) init() *LRpcExampleServer {
-	core.E调试输出("连接到服务端")
+	E调试输出("连接到服务端")
 
 	return this
 }
 
 //发布
 func (this *LRpcExampleServer) publish(funcname string, taskData *TaskData) error {
-	core.E调试输出("发布")
+	E调试输出("发布")
 
 	return nil
 }
 
 //订阅
 func (this *LRpcExampleServer) subscribe(funcName string, fn func(TaskData)) error {
-	core.E调试输出("订阅函数事件", funcName)
+	E调试输出("订阅函数事件", funcName)
 
 	t := TaskData{}
 	t.Fun = funcName
 	t.ReportTo = "return"
 	fn(t)
-	//core.E延时(1000)
-	//core.E调试输出("测试调用函数 func1", funcName)
+	//E延时(1000)
+	//E调试输出("测试调用函数 func1", funcName)
 	//ret, err := this.Call("func1", "hello")
-	//core.E调试输出("测试调用函数 func1 结果", ret, err)
+	//E调试输出("测试调用函数 func1 结果", ret, err)
 
 	return nil
 }
 
 //订阅
 func (this *LRpcExampleServer) Router(funcName string, fn func(TaskData) (string, bool)) {
-	core.E调试输出("注册函数", funcName)
+	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
-		//core.E调试输出("收到任务数据", data)
+		//E调试输出("收到任务数据", data)
 
 		redata, flag := fn(data)
 		data.Result = redata
-		core.E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
+		E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
 			this.publish(data.ReportTo, &data)

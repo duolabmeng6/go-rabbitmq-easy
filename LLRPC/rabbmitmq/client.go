@@ -5,9 +5,8 @@ import (
 
 	"encoding/json"
 	"errors"
-	"github.com/duolabmeng6/efun/efun"
-	"github.com/duolabmeng6/goefun/core"
-	"github.com/duolabmeng6/goefun/coreUtil"
+	. "github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/coreUtil"
 	"sync"
 	"time"
 )
@@ -43,7 +42,7 @@ func NewLRpcRabbmitMQClient(amqpURI string) *LRpcRabbmitMQClient {
 
 //连接服务器
 func (this *LRpcRabbmitMQClient) init() *LRpcRabbmitMQClient {
-	core.E调试输出("连接到服务端")
+	E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
 	})
@@ -59,7 +58,7 @@ func (this *LRpcRabbmitMQClient) publish(taskData *TaskData) (err error) {
 func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) error {
 
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
-		core.E调试输出("连接成功开始订阅队列")
+		E调试输出("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
 			false,    // 是否需要持久化
@@ -69,7 +68,7 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 			nil,      // arguments
 		)
 		if err != nil {
-			core.E调试输出("QueueDeclare", err)
+			E调试输出("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -82,7 +81,7 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 			nil,    // args
 		)
 		if err != nil {
-			core.E调试输出("Consume", err)
+			E调试输出("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -100,10 +99,10 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 
 func (this *LRpcRabbmitMQClient) listen() {
 	go func() {
-		this.receive_result_name = "receive_result_" + coreUtil.E取uuid()
-		core.E调试输出("注册回调结果监听", this.receive_result_name)
+		this.receive_result_name = "receive_result_" + E取uuid()
+		E调试输出("注册回调结果监听", this.receive_result_name)
 		this.subscribe(this.receive_result_name, func(data TaskData) {
-			//core.E调试输出("收到回调结果:", data)
+			//E调试输出("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -116,13 +115,13 @@ func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int6
 	//任务id
 	taskData.Fun = funcName
 	//UUID
-	taskData.UUID = coreUtil.E取uuid()
+	taskData.UUID = E取uuid()
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
 	taskData.TimeOut = timeout
 	//任务加入时间
-	taskData.StartTime = efun.E取毫秒()
+	taskData.StartTime = E取现行时间().E取毫秒()
 	//任务完成以后回调的频道名称
 	taskData.ReportTo = this.receive_result_name
 
@@ -131,11 +130,11 @@ func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int6
 
 	this.publish(&taskData)
 
-	//core.E调试输出("uuid", taskData.UUID)
+	//E调试输出("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, taskData.TimeOut)
 	if flag == false {
-		err = errors.New(core.E到文本(value.Result))
+		err = errors.New(E到文本(value.Result))
 	}
 
 	return value, err

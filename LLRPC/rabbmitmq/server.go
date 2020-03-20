@@ -4,7 +4,7 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"github.com/duolabmeng6/efun/efun"
-	"github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/core"
 )
 
 type LRpcRabbmitMQServer struct {
@@ -28,7 +28,7 @@ func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
 
 //连接服务器
 func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
-	core.E调试输出("连接到服务端")
+	E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
 	})
@@ -46,7 +46,7 @@ func (this *LRpcRabbmitMQServer) publish(taskData *TaskData) (err error) {
 //订阅
 func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
-		core.E调试输出("连接成功开始订阅队列")
+		E调试输出("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
 			true,     // 是否需要持久化
@@ -56,7 +56,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 			nil,      // arguments
 		)
 		if err != nil {
-			core.E调试输出("QueueDeclare", err)
+			E调试输出("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -69,7 +69,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 			nil,    // args
 		)
 		if err != nil {
-			core.E调试输出("Consume", err)
+			E调试输出("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -87,17 +87,17 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 
 //订阅
 func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
-	core.E调试输出("注册函数", funcName)
+	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
-		//core.E调试输出("收到任务数据", data)
-		if data.StartTime/1000+data.TimeOut < efun.E取时间戳() {
-			//efun.E调试输出格式化("任务超时抛弃 %s \r\n", data.Fun)
+		//E调试输出("收到任务数据", data)
+		if data.StartTime/1000+data.TimeOut < E取时间戳() {
+			//E调试输出格式化("任务超时抛弃 %s \r\n", data.Fun)
 			return
 		}
 
 		redata, flag := fn(data)
 		data.Result = redata
-		//core.E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
+		//E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
 			//将结果返回给调用的客户端

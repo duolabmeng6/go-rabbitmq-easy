@@ -3,13 +3,13 @@ package LLRPCRabbmitMQ
 import (
 	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
-	"github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/core"
 	"testing"
 )
 
 func TestNewLRpcRabbmit_server(t *testing.T) {
 	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
-		core.E调试输出("连接成功开始订阅队列")
+		E调试输出("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			"test1", // 队列名称
 			true,    // 是否需要持久化
@@ -19,7 +19,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,     // arguments
 		)
 		if err != nil {
-			core.E调试输出("QueueDeclare", err)
+			E调试输出("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -32,7 +32,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,    // args
 		)
 		if err != nil {
-			core.E调试输出("Consume", err)
+			E调试输出("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -47,7 +47,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 	})
 
 	server.Subscribe(func(data LLRPC.TaskData) {
-		core.E调试输出("收到数据", data.Data)
+		E调试输出("收到数据", data.Data)
 	})
 
 	select {}
@@ -63,7 +63,7 @@ func TestNewLRpcRabbmit_client(t *testing.T) {
 
 	for {
 		server.Publish("test1", &taskData)
-		core.E延时(1)
+		E延时(1)
 	}
 
 }

@@ -1,7 +1,7 @@
-package LRpc
+package redis
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	. "github.com/duolabmeng6/goefun/core"
 	. "github.com/duolabmeng6/goefun/coreUtil"
 	. "github.com/duolabmeng6/goefun/os/定时任务"

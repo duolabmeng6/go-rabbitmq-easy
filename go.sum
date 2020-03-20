@@ -40,6 +40,8 @@ github.com/duolabmeng6/efun v1.0.6 h1:9FWROqUWQW5xoGL7GofvdPe7iF4fRKqX7JcFn5YZVb
 github.com/duolabmeng6/efun v1.0.6/go.mod h1:DNaAApxr4xBV/daouyjs1VludJj1TkqA8HhpSyyX4iE=
 github.com/duolabmeng6/goefun v1.0.1 h1:7SPhPmzLkWS2Ek/FZXv96teXEotUW35lOte1LoeT29A=
 github.com/duolabmeng6/goefun v1.0.1/go.mod h1:Ao23lQa+m1UtLY+4nWlylz5NzOKmOrE4nIcWLAGP0Gk=
+github.com/duolabmeng6/goefun v1.0.2 h1:e1xMDPmmQ5BEWFBNxynIOFFuLq9qGj4a8PDEUjy7Yz8=
+github.com/duolabmeng6/goefun v1.0.2/go.mod h1:c8w4St1Be0Nyx3UZ8/z1xtUbXzxqh+j5zrBJCMQPSSQ=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-resiliency v1.2.0 h1:v7g92e/KSN71Rq7vSThKaWIq68fL4YHvWyiUKorFR1Q=
 github.com/eapache/go-resiliency v1.2.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
@@ -104,6 +106,7 @@ github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHh
 github.com/hashicorp/go-uuid v1.0.1/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
 github.com/hashicorp/go-uuid v1.0.2 h1:cfejS+Tpcp13yd5nYHWDI6qVCny6wyX2Mt5SGur2IGE=
 github.com/hashicorp/go-uuid v1.0.2/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
+github.com/jahnestacado/cable v0.0.0-20181014102652-4fac70eaafb2/go.mod h1:EBBzvZ5HJJoEY/rXy6qXz1SwUKa9nlfPGKG9Xa88iS8=
 github.com/jcmturner/gofork v0.0.0-20190328161633-dc7c13fece03/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=
 github.com/jcmturner/gofork v1.0.0 h1:J7uCkflzTEhUZ64xqKnkDxq3kzc96ajM1Gli5ktUem8=
 github.com/jcmturner/gofork v1.0.0/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=

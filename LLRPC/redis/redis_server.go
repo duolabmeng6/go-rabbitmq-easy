@@ -1,9 +1,9 @@
-package LRpc
+package redis
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
-	"github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/core"
 	"github.com/gomodule/redigo/redis"
 	"time"
 )
@@ -31,8 +31,8 @@ func NewLRpcRedisServer(link string) *LRpcRedisServer {
 	//this.publish(t)
 	//
 	//this.subscribe("aaa", func(data TaskData) {
-	//	core.E调试输出("收到数据")
-	//	core.E调试输出(data)
+	//	E调试输出("收到数据")
+	//	E调试输出(data)
 	//
 	//})
 
@@ -41,7 +41,7 @@ func NewLRpcRedisServer(link string) *LRpcRedisServer {
 
 //连接服务器
 func (this *LRpcRedisServer) init() *LRpcRedisServer {
-	core.E调试输出("连接到服务端")
+	E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
 		MaxIdle:     100,
 		MaxActive:   0,
@@ -66,17 +66,17 @@ func (this *LRpcRedisServer) init() *LRpcRedisServer {
 
 //发布
 func (this *LRpcRedisServer) publish(funcname string, taskData *TaskData) error {
-	//core.E调试输出("发布")
+	//E调试输出("发布")
 
 	conn := this.redisPool.Get()
 	defer conn.Close()
 
 	jsondata, _ := json.Marshal(taskData)
-	//core.E调试输出(string(jsondata))
+	//E调试输出(string(jsondata))
 
 	_, err := conn.Do("lpush", funcname, string(jsondata))
 	if err != nil {
-		core.E调试输出("PUBLISH Error", err.Error())
+		E调试输出("PUBLISH Error", err.Error())
 	}
 
 	return nil
@@ -84,7 +84,7 @@ func (this *LRpcRedisServer) publish(funcname string, taskData *TaskData) error 
 
 //订阅
 func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error {
-	core.E调试输出("订阅函数事件", funcName)
+	E调试输出("订阅函数事件", funcName)
 
 	go func() {
 		for {
@@ -97,7 +97,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 			if len(ret) == 0 {
 			} else {
 				json.Unmarshal([]byte(ret[1]), &taskData)
-				core.E调试输出("收到数据", taskData)
+				E调试输出("收到数据", taskData)
 				fn(taskData)
 			}
 		}
@@ -109,7 +109,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 	//	for {
 	//		switch v := psc.Receive().(type) {
 	//		case redis.Message:
-	//			core.E调试输出格式化("%s: message: %s\n", v.Channel, v.Data)
+	//			E调试输出格式化("%s: message: %s\n", v.Channel, v.Data)
 	//
 	//			taskData := TaskData{}
 	//			json.Unmarshal([]byte( v.Data), &taskData)
@@ -117,9 +117,9 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 	//			fn(taskData)
 	//
 	//		case redis.Subscription:
-	//			core.E调试输出格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
+	//			E调试输出格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
 	//		case error:
-	//			core.E调试输出("subscribe error", v)
+	//			E调试输出("subscribe error", v)
 	//			//return v
 	//
 	//			psc = redis.PubSubConn{Conn: this.redisPool.Get()}
@@ -130,23 +130,23 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 	//
 	//}()
 
-	//core.E延时(1000)
-	//core.E调试输出("测试调用函数 func1", funcName)
+	//E延时(1000)
+	//E调试输出("测试调用函数 func1", funcName)
 	//ret, err := this.Call("func1", "hello")
-	//core.E调试输出("测试调用函数 func1 结果", ret, err)
+	//E调试输出("测试调用函数 func1 结果", ret, err)
 
 	return nil
 }
 
 //订阅
 func (this *LRpcRedisServer) Router(funcName string, fn func(TaskData) (string, bool)) {
-	core.E调试输出("注册函数", funcName)
+	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
-		//core.E调试输出("收到任务数据", data)
+		//E调试输出("收到任务数据", data)
 
 		redata, flag := fn(data)
 		data.Result = redata
-		core.E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
+		E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
 			this.publish(data.ReportTo, &data)
