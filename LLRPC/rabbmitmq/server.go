@@ -1,7 +1,7 @@
-package heightenMq
+package LLRPCRabbmitMQ
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"github.com/duolabmeng6/efun/efun"
 	"github.com/duolabmeng6/goefun/core"

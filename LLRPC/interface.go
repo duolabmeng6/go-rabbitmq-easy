@@ -1,4 +1,4 @@
-package LRpc
+package LLRPC
 
 var (
 	ResendCount    = 10    // 消息重发次数
@@ -15,7 +15,6 @@ type TaskData struct {
 	ReportTo string `json:"report_to"`
 	//uuid标识
 	UUID string `json:"uuid"`
-
 	//任务数据
 	Data string `json:"data"`
 	//加入任务时间

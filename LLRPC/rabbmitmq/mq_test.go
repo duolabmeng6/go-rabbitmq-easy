@@ -1,7 +1,7 @@
-package heightenMq
+package LLRPCRabbmitMQ
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LRpc"
+	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
 	. "github.com/duolabmeng6/goefun/core"
 	. "github.com/duolabmeng6/goefun/coreUtil"
@@ -69,7 +69,7 @@ func TestServer(t *testing.T) {
 	}, 1000)
 
 	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
-	server.Router("func2", func(data LRpc.TaskData) (string, bool) {
+	server.Router("func2", func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
 		//fmt.Println("test", data.Data)
 		//E延时(6000)

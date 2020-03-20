@@ -1,7 +1,7 @@
-package heightenMq
+package LLRPCRabbmitMQ
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LRpc"
+	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"github.com/duolabmeng6/goefun/core"
 	"testing"
@@ -37,7 +37,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 		go func() {
 			for d := range this.msgs {
 				//收到任务创建协程执行
-				taskData := LRpc.TaskData{}
+				taskData := LLRPC.TaskData{}
 				json.Unmarshal(d.Body, &taskData)
 
 				this.fn(taskData)
@@ -46,7 +46,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 
 	})
 
-	server.Subscribe(func(data LRpc.TaskData) {
+	server.Subscribe(func(data LLRPC.TaskData) {
 		core.E调试输出("收到数据", data.Data)
 	})
 
@@ -57,7 +57,7 @@ func TestNewLRpcRabbmit_client(t *testing.T) {
 	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
 
 	})
-	taskData := LRpc.TaskData{
+	taskData := LLRPC.TaskData{
 		Data: "heello",
 	}
 
