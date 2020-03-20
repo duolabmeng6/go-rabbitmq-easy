@@ -3,7 +3,6 @@ package LLRPCRabbmitMQ
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
-	"github.com/duolabmeng6/efun/efun"
 	. "github.com/duolabmeng6/goefun/core"
 )
 
@@ -90,7 +89,7 @@ func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (stri
 	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//E调试输出("收到任务数据", data)
-		if data.StartTime/1000+data.TimeOut < E取时间戳() {
+		if data.StartTime/1000+data.TimeOut < E取现行时间().E取时间戳() {
 			//E调试输出格式化("任务超时抛弃 %s \r\n", data.Fun)
 			return
 		}
