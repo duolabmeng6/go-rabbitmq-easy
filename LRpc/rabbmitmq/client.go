@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type LRpcRedisClient struct {
+type LRpcRabbmitMQClient struct {
 	LRpcPubSub
 	LRpcClient
 
@@ -28,9 +28,9 @@ type LRpcRedisClient struct {
 }
 
 //初始化消息队列
-func NewLRpcRedisClient(amqpURI string) *LRpcRedisClient {
+func NewLRpcRabbmitMQClient(amqpURI string) *LRpcRabbmitMQClient {
 
-	this := new(LRpcRedisClient)
+	this := new(LRpcRabbmitMQClient)
 	this.amqpURI = amqpURI
 	this.keychan = map[string]chan TaskData{}
 
@@ -41,7 +41,7 @@ func NewLRpcRedisClient(amqpURI string) *LRpcRedisClient {
 }
 
 //连接服务器
-func (this *LRpcRedisClient) init() *LRpcRedisClient {
+func (this *LRpcRabbmitMQClient) init() *LRpcRabbmitMQClient {
 	core.E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
@@ -50,12 +50,12 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 }
 
 //发布
-func (this *LRpcRedisClient) publish(taskData *TaskData) (err error) {
+func (this *LRpcRabbmitMQClient) publish(taskData *TaskData) (err error) {
 	return this.send.Publish(taskData.Fun, taskData)
 }
 
 //订阅
-func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) error {
 
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 		core.E调试输出("连接成功开始订阅队列")
@@ -97,7 +97,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	return nil
 }
 
-func (this *LRpcRedisClient) listen() {
+func (this *LRpcRabbmitMQClient) listen() {
 	go func() {
 		this.receive_result_name = "receive_result_" + coreUtil.E取uuid()
 		core.E调试输出("注册回调结果监听", this.receive_result_name)
@@ -109,7 +109,7 @@ func (this *LRpcRedisClient) listen() {
 	}()
 }
 
-func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
+func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
 	var err error
 	taskData := TaskData{}
 	//任务id
@@ -140,7 +140,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (
 	return value, err
 }
 
-func (this *LRpcRedisClient) newChan(key string) chan TaskData {
+func (this *LRpcRabbmitMQClient) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
 	mychan := this.keychan[key]
@@ -148,7 +148,7 @@ func (this *LRpcRedisClient) newChan(key string) chan TaskData {
 	return mychan
 }
 
-func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
+func (this *LRpcRabbmitMQClient) returnChan(uuid string, data TaskData) {
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()
@@ -160,7 +160,7 @@ func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
 }
 
 //等待任务结果
-func (this *LRpcRedisClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
+func (this *LRpcRabbmitMQClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData
 

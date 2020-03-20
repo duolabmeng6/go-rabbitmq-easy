@@ -7,7 +7,7 @@ import (
 	"github.com/duolabmeng6/goefun/core"
 )
 
-type LRpcRedisServer struct {
+type LRpcRabbmitMQServer struct {
 	LRpcPubSub
 	LRpcServer
 
@@ -18,8 +18,8 @@ type LRpcRedisServer struct {
 }
 
 //初始化消息队列
-func NewLRpcRedisServer(amqpURI string) *LRpcRedisServer {
-	this := new(LRpcRedisServer)
+func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
+	this := new(LRpcRabbmitMQServer)
 	this.amqpURI = amqpURI
 	this.init()
 
@@ -27,7 +27,7 @@ func NewLRpcRedisServer(amqpURI string) *LRpcRedisServer {
 }
 
 //连接服务器
-func (this *LRpcRedisServer) init() *LRpcRedisServer {
+func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
 	core.E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
@@ -37,14 +37,14 @@ func (this *LRpcRedisServer) init() *LRpcRedisServer {
 }
 
 //发布
-func (this *LRpcRedisServer) publish(taskData *TaskData) (err error) {
+func (this *LRpcRabbmitMQServer) publish(taskData *TaskData) (err error) {
 
 	return this.send.Publish(taskData.ReportTo, taskData)
 
 }
 
 //订阅
-func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 		core.E调试输出("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
@@ -86,7 +86,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 }
 
 //订阅
-func (this *LRpcRedisServer) Router(funcName string, fn func(TaskData) (string, bool)) {
+func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	core.E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//core.E调试输出("收到任务数据", data)

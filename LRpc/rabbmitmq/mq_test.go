@@ -28,7 +28,7 @@ func TestClient(t *testing.T) {
 	}, 1000)
 	//amqp://admin:admin@182.92.84.229:5672/
 	//amqp://guest:guest@127.0.0.1:5672/
-	client := NewLRpcRedisClient("amqp://guest:guest@127.0.0.1:5672/")
+	client := NewLRpcRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
 	//等一会让监听结果的连上
 	E延时(1000)
 	线程池 := New线程池(100000)
@@ -68,7 +68,7 @@ func TestServer(t *testing.T) {
 		return true
 	}, 1000)
 
-	server := NewLRpcRedisServer("amqp://guest:guest@127.0.0.1:5672/")
+	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
 	server.Router("func2", func(data LRpc.TaskData) (string, bool) {
 		successCount.Add(1)
 		//fmt.Println("test", data.Data)

@@ -1,4 +1,4 @@
-package kafaka
+package kafaka2
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LRpc"
@@ -23,7 +23,7 @@ func TestServer(t *testing.T) {
 
 func TestClient(t *testing.T) {
 	client := NewLRpcRedisClient("182.92.84.229:9092")
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		E调试输出("调用函数 func1")
 		ret, err := client.Call("func1", "hello", 10)
 		if err != nil {
@@ -60,12 +60,24 @@ func TestServerTongji(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	server := NewLRpcRedisServer("182.92.84.229:9092")
-	server.Router("func1", func(data TaskData) (string, bool) {
-		successCount.Add(1)
+	go func() {
+		server := NewLRpcRedisServer("182.92.84.229:9092")
+		server.Router("func1", func(data TaskData) (string, bool) {
+			successCount.Add(1)
+			//E调试输出(1)
+			return data.Data + " ok", true
+		})
+	}()
 
-		return data.Data + " ok", true
-	})
+	go func() {
+		server2 := NewLRpcRedisServer("182.92.84.229:9092")
+		server2.Router("func1", func(data TaskData) (string, bool) {
+			successCount.Add(1)
+			//E调试输出(2)
+			return data.Data + " ok", true
+		})
+	}()
+
 	select {}
 }
 
@@ -114,9 +126,9 @@ func TestCientTongji(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	线程池 := New线程池(10)
+	线程池 := New线程池(1000)
 
-	for i := 1; i <= 1000*1; i++ {
+	for i := 1; i <= 10000*2; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
