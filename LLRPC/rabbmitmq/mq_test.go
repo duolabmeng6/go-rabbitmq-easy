@@ -81,3 +81,20 @@ func TestServer(t *testing.T) {
 	})
 	select {}
 }
+
+
+//提取1条消息
+func TestServer_one(t *testing.T) {
+	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
+	server.Router("func2", func(data LLRPC.TaskData) (string, bool) {
+		//fmt.Println("test", data.Data)
+		//E延时(6000)
+		time := E到整数(data.Data)
+		nowtime := E取现行时间().E取时间戳毫秒()
+		str := nowtime - time
+
+		return E到文本(str), true
+	})
+	select {}
+}
+

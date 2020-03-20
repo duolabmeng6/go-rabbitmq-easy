@@ -121,7 +121,7 @@ func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int6
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
 	taskData.TimeOut = timeout
 	//任务加入时间
-	taskData.StartTime = E取现行时间().E取毫秒()
+	taskData.StartTime = E取现行时间().E取时间戳毫秒()
 	//任务完成以后回调的频道名称
 	taskData.ReportTo = this.receive_result_name
 
