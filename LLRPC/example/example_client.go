@@ -1,22 +1,19 @@
 package example
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"errors"
 	"github.com/duolabmeng6/efun/efun"
 	"github.com/duolabmeng6/goefun/core"
 	"github.com/duolabmeng6/goefun/coreUtil"
-	"github.com/gomodule/redigo/redis"
 	"sync"
 	"time"
 )
 
-type LRpcRedisClient struct {
+type LRpcExampleClient struct {
 	LRpcPubSub
 	LRpcClient
 
-	//redis客户端
-	redisPool *redis.Pool
 	//读写锁用于keychan的
 	lock sync.RWMutex
 	//等待消息回调的通道
@@ -25,8 +22,8 @@ type LRpcRedisClient struct {
 }
 
 //初始化消息队列
-func NewLRpcRedisClient(link string) *LRpcRedisClient {
-	this := new(LRpcRedisClient)
+func NewLRpcExampleClient(link string) *LRpcExampleClient {
+	this := new(LRpcExampleClient)
 	this.link = link
 	this.keychan = map[string]chan TaskData{}
 
@@ -49,27 +46,27 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 }
 
 //连接服务器
-func (this *LRpcRedisClient) init() *LRpcRedisClient {
+func (this *LRpcExampleClient) init() *LRpcExampleClient {
 	core.E调试输出("连接到服务端")
 
 	return this
 }
 
 //发布
-func (this *LRpcRedisClient) publish(taskData *TaskData) error {
+func (this *LRpcExampleClient) publish(taskData *TaskData) error {
 	core.E调试输出("发布")
 
 	return nil
 }
 
 //订阅
-func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LRpcExampleClient) subscribe(funcName string, fn func(TaskData)) error {
 	core.E调试输出("订阅函数事件", funcName)
 
 	return nil
 }
 
-func (this *LRpcRedisClient) listen() {
+func (this *LRpcExampleClient) listen() {
 	go func() {
 		core.E调试输出("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
@@ -81,7 +78,7 @@ func (this *LRpcRedisClient) listen() {
 
 }
 
-func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error) {
+func (this *LRpcExampleClient) Call(funcName string, data string) (TaskData, error) {
 	var err error
 	taskData := TaskData{}
 	//任务id
@@ -112,7 +109,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 	return value, err
 }
 
-func (this *LRpcRedisClient) newChan(key string) chan TaskData {
+func (this *LRpcExampleClient) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
 	mychan := this.keychan[key]
@@ -120,7 +117,7 @@ func (this *LRpcRedisClient) newChan(key string) chan TaskData {
 	return mychan
 }
 
-func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
+func (this *LRpcExampleClient) returnChan(uuid string, data TaskData) {
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()
@@ -132,7 +129,7 @@ func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
 }
 
 //等待任务结果
-func (this *LRpcRedisClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
+func (this *LRpcExampleClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData
 

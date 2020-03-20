@@ -1,7 +1,7 @@
-package kafaka2
+package kafka
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"github.com/Shopify/sarama"
 	"github.com/duolabmeng6/efun/efun"
@@ -9,7 +9,7 @@ import (
 	"github.com/gogf/gf/container/gtype"
 )
 
-type LRpcRedisServer struct {
+type LRpcKafkaServer struct {
 	LRpcPubSub
 	LRpcServer
 	consumer  sarama.Consumer
@@ -19,8 +19,8 @@ type LRpcRedisServer struct {
 }
 
 //初始化消息队列
-func NewLRpcRedisServer(link string) *LRpcRedisServer {
-	this := new(LRpcRedisServer)
+func NewLRpcKafkaServer(link string) *LRpcKafkaServer {
+	this := new(LRpcKafkaServer)
 	this.link = link
 	this.init()
 
@@ -28,7 +28,7 @@ func NewLRpcRedisServer(link string) *LRpcRedisServer {
 }
 
 //连接服务器
-func (this *LRpcRedisServer) init() *LRpcRedisServer {
+func (this *LRpcKafkaServer) init() *LRpcKafkaServer {
 	core.E调试输出("连接到服务端")
 	var err error
 
@@ -60,7 +60,7 @@ func (this *LRpcRedisServer) init() *LRpcRedisServer {
 }
 
 //发布
-func (this *LRpcRedisServer) publish(taskData *TaskData) error {
+func (this *LRpcKafkaServer) publish(taskData *TaskData) error {
 	//core.E调试输出("发布")
 	// send message
 	msg := &sarama.ProducerMessage{
@@ -86,7 +86,7 @@ func (this *LRpcRedisServer) publish(taskData *TaskData) error {
 }
 
 //订阅
-func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error {
 	core.E调试输出("订阅函数事件", funcName)
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
@@ -115,7 +115,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 }
 
 //订阅
-func (this *LRpcRedisServer) Router(funcName string, fn func(TaskData) (string, bool)) {
+func (this *LRpcKafkaServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	core.E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//core.E调试输出("收到任务数据", data)

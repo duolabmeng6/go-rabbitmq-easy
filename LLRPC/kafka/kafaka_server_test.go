@@ -1,7 +1,7 @@
-package kafaka2
+package kafka
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	. "github.com/duolabmeng6/goefun/core"
 	. "github.com/duolabmeng6/goefun/coreUtil"
 	. "github.com/duolabmeng6/goefun/os/定时任务"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcRedisServer("182.92.84.229:9092")
+	server := NewLRpcKafkaServer("182.92.84.229:9092")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		E调试输出("test", data.Data)
 		//E延时(6000)
@@ -22,7 +22,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcRedisClient("182.92.84.229:9092")
+	client := NewLRpcKafkaClient("182.92.84.229:9092")
 	for i := 0; i < 1000; i++ {
 		E调试输出("调用函数 func1")
 		ret, err := client.Call("func1", "hello", 10)
@@ -61,7 +61,7 @@ func TestServerTongji(t *testing.T) {
 	}, 60*1000)
 
 	go func() {
-		server := NewLRpcRedisServer("182.92.84.229:9092")
+		server := NewLRpcKafkaServer("182.92.84.229:9092")
 		server.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
 			//E调试输出(1)
@@ -70,7 +70,7 @@ func TestServerTongji(t *testing.T) {
 	}()
 
 	go func() {
-		server2 := NewLRpcRedisServer("182.92.84.229:9092")
+		server2 := NewLRpcKafkaServer("182.92.84.229:9092")
 		server2.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
 			//E调试输出(2)
@@ -82,7 +82,7 @@ func TestServerTongji(t *testing.T) {
 }
 
 func TestClientTongjiQps(t *testing.T) {
-	client := NewLRpcRedisClient("182.92.84.229:9092")
+	client := NewLRpcKafkaClient("182.92.84.229:9092")
 
 	线程池 := New线程池(10)
 	for {
@@ -101,7 +101,7 @@ func TestClientTongjiQps(t *testing.T) {
 
 //客户端统计
 func TestCientTongji(t *testing.T) {
-	client := NewLRpcRedisClient("182.92.84.229:9092")
+	client := NewLRpcKafkaClient("182.92.84.229:9092")
 
 	时间统计 := New时间统计类()
 

@@ -1,7 +1,7 @@
-package kafaka2
+package kafka
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LRpc"
+	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"errors"
 	"github.com/Shopify/sarama"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type LRpcRedisClient struct {
+type LRpcKafkaClient struct {
 	LRpcPubSub
 	LRpcClient
 
@@ -29,8 +29,8 @@ type LRpcRedisClient struct {
 }
 
 //初始化消息队列
-func NewLRpcRedisClient(link string) *LRpcRedisClient {
-	this := new(LRpcRedisClient)
+func NewLRpcKafkaClient(link string) *LRpcKafkaClient {
+	this := new(LRpcKafkaClient)
 	this.link = link
 	this.keychan = map[string]chan TaskData{}
 
@@ -41,7 +41,7 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 }
 
 //连接服务器
-func (this *LRpcRedisClient) init() *LRpcRedisClient {
+func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 	core.E调试输出("连接到服务端")
 	var err error
 
@@ -73,7 +73,7 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 }
 
 //发布
-func (this *LRpcRedisClient) publish(taskData *TaskData) error {
+func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
 	//core.E调试输出("发布")
 	// send message
 	msg := &sarama.ProducerMessage{
@@ -98,7 +98,7 @@ func (this *LRpcRedisClient) publish(taskData *TaskData) error {
 }
 
 //订阅
-func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error {
 	core.E调试输出("订阅函数事件", funcName)
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
@@ -126,7 +126,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	return nil
 }
 
-func (this *LRpcRedisClient) listen() {
+func (this *LRpcKafkaClient) listen() {
 	go func() {
 		core.E调试输出("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
@@ -138,7 +138,7 @@ func (this *LRpcRedisClient) listen() {
 
 }
 
-func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
+func (this *LRpcKafkaClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
 	var err error
 	taskData := TaskData{}
 	//任务id
@@ -169,7 +169,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string, timeout int64) (
 	return value, err
 }
 
-func (this *LRpcRedisClient) newChan(key string) chan TaskData {
+func (this *LRpcKafkaClient) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
 	mychan := this.keychan[key]
@@ -177,7 +177,7 @@ func (this *LRpcRedisClient) newChan(key string) chan TaskData {
 	return mychan
 }
 
-func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
+func (this *LRpcKafkaClient) returnChan(uuid string, data TaskData) {
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()
@@ -189,7 +189,7 @@ func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
 }
 
 //等待任务结果
-func (this *LRpcRedisClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
+func (this *LRpcKafkaClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData
 
