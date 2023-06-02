@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Shopify/sarama"
-	. "github.com/duolabmeng6/goefun/core"
-	. "github.com/duolabmeng6/goefun/coreUtil"
-	"github.com/gogf/gf/container/gtype"
+	. "github.com/duolabmeng6/goefun/ecore"
+	"github.com/duolabmeng6/goefun/etool"
+	"github.com/gogf/gf/v2/container/gtype"
+
 	"sync"
 	"time"
 )
@@ -27,7 +28,7 @@ type LRpcKafkaClient struct {
 	pushCount *gtype.Int
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcKafkaClient(link string) *LRpcKafkaClient {
 	this := new(LRpcKafkaClient)
 	this.link = link
@@ -39,7 +40,7 @@ func NewLRpcKafkaClient(link string) *LRpcKafkaClient {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 	E调试输出("连接到服务端")
 	var err error
@@ -71,7 +72,7 @@ func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
 	//E调试输出("发布")
 	// send message
@@ -96,7 +97,7 @@ func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error {
 	E调试输出("订阅函数事件", funcName)
 
@@ -143,7 +144,7 @@ func (this *LRpcKafkaClient) Call(funcName string, data string, timeout int64) (
 	//任务id
 	taskData.Fun = funcName
 	//UUID
-	taskData.UUID = E取uuid()
+	taskData.UUID = etool.E取UUID()
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
@@ -187,7 +188,7 @@ func (this *LRpcKafkaClient) returnChan(uuid string, data TaskData) {
 	}
 }
 
-//等待任务结果
+// 等待任务结果
 func (this *LRpcKafkaClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData

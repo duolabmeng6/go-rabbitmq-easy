@@ -3,7 +3,7 @@ package LLRPCRabbmitMQ
 import (
 	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
-	. "github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/ecore"
 	"testing"
 )
 

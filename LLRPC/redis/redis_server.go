@@ -3,7 +3,8 @@ package redis
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
-	. "github.com/duolabmeng6/goefun/core"
+	. "github.com/duolabmeng6/goefun/ecore"
+
 	"github.com/gomodule/redigo/redis"
 	"time"
 )
@@ -17,7 +18,7 @@ type LRpcRedisServer struct {
 	link      string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcRedisServer(link string) *LRpcRedisServer {
 	this := new(LRpcRedisServer)
 	this.link = link
@@ -39,7 +40,7 @@ func NewLRpcRedisServer(link string) *LRpcRedisServer {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcRedisServer) init() *LRpcRedisServer {
 	E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
@@ -64,7 +65,7 @@ func (this *LRpcRedisServer) init() *LRpcRedisServer {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcRedisServer) publish(funcname string, taskData *TaskData) error {
 	//E调试输出("发布")
 
@@ -82,7 +83,7 @@ func (this *LRpcRedisServer) publish(funcname string, taskData *TaskData) error 
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error {
 	E调试输出("订阅函数事件", funcName)
 
@@ -138,7 +139,7 @@ func (this *LRpcRedisServer) subscribe(funcName string, fn func(TaskData)) error
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcRedisServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {

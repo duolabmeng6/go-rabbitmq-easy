@@ -2,11 +2,11 @@ package LLRPCRabbmitMQ
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	. "github.com/duolabmeng6/goefun/ecore"
+	"github.com/duolabmeng6/goefun/etool"
 
 	"encoding/json"
 	"errors"
-	. "github.com/duolabmeng6/goefun/core"
-	. "github.com/duolabmeng6/goefun/coreUtil"
 	"sync"
 	"time"
 )
@@ -27,7 +27,7 @@ type LRpcRabbmitMQClient struct {
 	receive_result_name string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcRabbmitMQClient(amqpURI string) *LRpcRabbmitMQClient {
 
 	this := new(LRpcRabbmitMQClient)
@@ -40,7 +40,7 @@ func NewLRpcRabbmitMQClient(amqpURI string) *LRpcRabbmitMQClient {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcRabbmitMQClient) init() *LRpcRabbmitMQClient {
 	E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
@@ -49,12 +49,12 @@ func (this *LRpcRabbmitMQClient) init() *LRpcRabbmitMQClient {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcRabbmitMQClient) publish(taskData *TaskData) (err error) {
 	return this.send.Publish(taskData.Fun, taskData)
 }
 
-//订阅
+// 订阅
 func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) error {
 
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
@@ -99,7 +99,7 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 
 func (this *LRpcRabbmitMQClient) listen() {
 	go func() {
-		this.receive_result_name = "receive_result_" + E取uuid()
+		this.receive_result_name = "receive_result_" + etool.E取UUID()
 		E调试输出("注册回调结果监听", this.receive_result_name)
 		this.subscribe(this.receive_result_name, func(data TaskData) {
 			//E调试输出("收到回调结果:", data)
@@ -115,7 +115,7 @@ func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int6
 	//任务id
 	taskData.Fun = funcName
 	//UUID
-	taskData.UUID = E取uuid()
+	taskData.UUID = etool.E取UUID()
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
@@ -159,7 +159,7 @@ func (this *LRpcRabbmitMQClient) returnChan(uuid string, data TaskData) {
 	}
 }
 
-//等待任务结果
+// 等待任务结果
 func (this *LRpcRabbmitMQClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData

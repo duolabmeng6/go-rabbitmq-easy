@@ -2,8 +2,7 @@ package example
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
-	. "github.com/duolabmeng6/goefun/core"
-
+	. "github.com/duolabmeng6/goefun/ecore"
 )
 
 type LRpcExampleServer struct {
@@ -11,10 +10,10 @@ type LRpcExampleServer struct {
 	LRpcServer
 
 	//Example客户端
-	link      string
+	link string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcExampleServer(link string) *LRpcExampleServer {
 	this := new(LRpcExampleServer)
 	this.link = link
@@ -36,21 +35,21 @@ func NewLRpcExampleServer(link string) *LRpcExampleServer {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcExampleServer) init() *LRpcExampleServer {
 	E调试输出("连接到服务端")
 
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcExampleServer) publish(funcname string, taskData *TaskData) error {
 	E调试输出("发布")
 
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcExampleServer) subscribe(funcName string, fn func(TaskData)) error {
 	E调试输出("订阅函数事件", funcName)
 
@@ -66,7 +65,7 @@ func (this *LRpcExampleServer) subscribe(funcName string, fn func(TaskData)) err
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcExampleServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {

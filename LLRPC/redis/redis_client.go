@@ -4,8 +4,8 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"errors"
-	. "github.com/duolabmeng6/goefun/core"
-	. "github.com/duolabmeng6/goefun/coreUtil"
+	. "github.com/duolabmeng6/goefun/ecore"
+	"github.com/duolabmeng6/goefun/etool"
 	"github.com/gomodule/redigo/redis"
 	"sync"
 	"time"
@@ -24,7 +24,7 @@ type LRpcRedisClient struct {
 	link    string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcRedisClient(link string) *LRpcRedisClient {
 	this := new(LRpcRedisClient)
 	this.link = link
@@ -48,7 +48,7 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	E调试输出("连接到服务端")
 	this.redisPool = &redis.Pool{
@@ -73,7 +73,7 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcRedisClient) publish(taskData *TaskData) error {
 	//E调试输出("发布")
 
@@ -91,7 +91,7 @@ func (this *LRpcRedisClient) publish(taskData *TaskData) error {
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
 	E调试输出("订阅函数事件", funcName)
 
@@ -161,7 +161,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 	//任务id
 	taskData.Fun = funcName
 	//UUID
-	taskData.UUID = E取uuid()
+	taskData.UUID = etool.E取UUID()
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
@@ -205,7 +205,7 @@ func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
 	}
 }
 
-//等待任务结果
+// 等待任务结果
 func (this *LRpcRedisClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData

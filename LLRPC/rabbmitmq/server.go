@@ -2,8 +2,9 @@ package LLRPCRabbmitMQ
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	. "github.com/duolabmeng6/goefun/ecore"
+
 	"encoding/json"
-	. "github.com/duolabmeng6/goefun/core"
 )
 
 type LRpcRabbmitMQServer struct {
@@ -16,7 +17,7 @@ type LRpcRabbmitMQServer struct {
 	amqpURI string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
 	this := new(LRpcRabbmitMQServer)
 	this.amqpURI = amqpURI
@@ -25,7 +26,7 @@ func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
 	E调试输出("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
@@ -35,14 +36,14 @@ func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcRabbmitMQServer) publish(taskData *TaskData) (err error) {
 
 	return this.send.Publish(taskData.ReportTo, taskData)
 
 }
 
-//订阅
+// 订阅
 func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 		E调试输出("连接成功开始订阅队列")
@@ -84,7 +85,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {

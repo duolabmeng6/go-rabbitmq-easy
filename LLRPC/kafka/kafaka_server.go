@@ -4,8 +4,9 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"github.com/Shopify/sarama"
-	. "github.com/duolabmeng6/goefun/core"
-	"github.com/gogf/gf/container/gtype"
+	. "github.com/duolabmeng6/goefun/ecore"
+
+	"github.com/gogf/gf/v2/container/gtype"
 )
 
 type LRpcKafkaServer struct {
@@ -17,7 +18,7 @@ type LRpcKafkaServer struct {
 	link      string
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcKafkaServer(link string) *LRpcKafkaServer {
 	this := new(LRpcKafkaServer)
 	this.link = link
@@ -26,7 +27,7 @@ func NewLRpcKafkaServer(link string) *LRpcKafkaServer {
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcKafkaServer) init() *LRpcKafkaServer {
 	E调试输出("连接到服务端")
 	var err error
@@ -58,7 +59,7 @@ func (this *LRpcKafkaServer) init() *LRpcKafkaServer {
 	return this
 }
 
-//发布
+// 发布
 func (this *LRpcKafkaServer) publish(taskData *TaskData) error {
 	//E调试输出("发布")
 	// send message
@@ -84,7 +85,7 @@ func (this *LRpcKafkaServer) publish(taskData *TaskData) error {
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error {
 	E调试输出("订阅函数事件", funcName)
 
@@ -113,7 +114,7 @@ func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error
 	return nil
 }
 
-//订阅
+// 订阅
 func (this *LRpcKafkaServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	E调试输出("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {

@@ -2,10 +2,9 @@ package kafka
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
-	. "github.com/duolabmeng6/goefun/core"
-	. "github.com/duolabmeng6/goefun/coreUtil"
-	. "github.com/duolabmeng6/goefun/os/定时任务"
-	"github.com/gogf/gf/container/gtype"
+	. "github.com/duolabmeng6/goefun/ecore"
+	"github.com/duolabmeng6/goefun/etool"
+	"github.com/gogf/gf/v2/container/gtype"
 	"runtime"
 	"testing"
 )
@@ -37,7 +36,7 @@ func TestClient(t *testing.T) {
 
 }
 
-//服务端处理能力测试
+// 服务端处理能力测试
 func TestServerTongji(t *testing.T) {
 
 	successCount := gtype.NewInt()
@@ -84,7 +83,7 @@ func TestServerTongji(t *testing.T) {
 func TestClientTongjiQps(t *testing.T) {
 	client := NewLRpcKafkaClient("182.92.84.229:9092")
 
-	线程池 := New线程池(10)
+	线程池 := etool.New线程池(10)
 	for {
 		线程池.E加入任务()
 		go func() {
@@ -99,7 +98,7 @@ func TestClientTongjiQps(t *testing.T) {
 	select {}
 }
 
-//客户端统计
+// 客户端统计
 func TestCientTongji(t *testing.T) {
 	client := NewLRpcKafkaClient("182.92.84.229:9092")
 
@@ -126,7 +125,7 @@ func TestCientTongji(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	线程池 := New线程池(1000)
+	线程池 := etool.New线程池(1000)
 
 	for i := 1; i <= 10000*2; i++ {
 		线程池.E加入任务()

@@ -17,7 +17,8 @@ package LLRPCRabbmitMQ
 import (
 	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
-	. "github.com/duolabmeng6/goefun/core"
+	 "github.com/duolabmeng6/goefun/ecore"
+
 	. "github.com/duolabmeng6/goefun/coreUtil"
 	. "github.com/duolabmeng6/goefun/os/定时任务"
 	"github.com/gogf/gf/container/gtype"
@@ -45,7 +46,7 @@ func TestClient(t *testing.T) {
 	client := NewLRpcRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
 	//等一会让监听结果的连上
 	E延时(1000)
-	线程池 := New线程池(100000)
+	线程池 := etool.New线程池(100000)
 	for i := 0; i < 10000*100; i++ {
 		线程池.E加入任务()
 		go func() {
@@ -133,7 +134,8 @@ package LLRPCRabbmitMQ
 import (
 	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
-	. "github.com/duolabmeng6/goefun/core"
+	 "github.com/duolabmeng6/goefun/ecore"
+
 	. "github.com/duolabmeng6/goefun/coreUtil"
 	. "github.com/duolabmeng6/goefun/os/定时任务"
 	"github.com/gogf/gf/container/gtype"
@@ -161,7 +163,7 @@ func TestClient(t *testing.T) {
 	client := NewLRpcRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
 	//等一会让监听结果的连上
 	E延时(1000)
-	线程池 := New线程池(100000)
+	线程池 := etool.New线程池(100000)
 	for i := 0; i < 10000*100; i++ {
 		线程池.E加入任务()
 		go func() {

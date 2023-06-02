@@ -2,9 +2,9 @@ package LLRPCRabbmitMQ
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	. "github.com/duolabmeng6/goefun/ecore"
 
 	"encoding/json"
-	. "github.com/duolabmeng6/goefun/core"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -22,7 +22,7 @@ type LRpcRabbmit struct {
 	success  func(channel *LRpcRabbmit)
 }
 
-//初始化消息队列
+// 初始化消息队列
 func NewLRpcRabbmit(amqpURI string, success func(this *LRpcRabbmit)) *LRpcRabbmit {
 	this := new(LRpcRabbmit)
 	this.amqpURI = amqpURI
@@ -33,7 +33,7 @@ func NewLRpcRabbmit(amqpURI string, success func(this *LRpcRabbmit)) *LRpcRabbmi
 	return this
 }
 
-//连接服务器
+// 连接服务器
 func (this *LRpcRabbmit) init() bool {
 	E调试输出("连接到服务端")
 	var err error
@@ -74,7 +74,7 @@ func (this *LRpcRabbmit) handleReconnect() {
 	}
 }
 
-//发布
+// 发布
 func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err error) {
 	//E调试输出("发布消息", queueName)
 
@@ -98,7 +98,7 @@ func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err erro
 	return
 }
 
-//订阅
+// 订阅
 func (this *LRpcRabbmit) Subscribe(fn func(TaskData)) error {
 	this.fn = fn
 
