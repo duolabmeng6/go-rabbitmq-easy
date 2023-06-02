@@ -18,19 +18,16 @@ type LLRPCRedisClient struct {
 
 	//redis客户端
 	redisPool *redis.Pool
-	//读写锁用于keychan的
-	lock sync.RWMutex
 	//等待消息回调的通道
-	keychan map[string]chan LLRPC.TaskData
-
-	link string
+	//keychan map[string]chan LLRPC.TaskData
+	keychan sync.Map
+	link    string
 }
 
 // 初始化消息队列
 func NewLLRPCRedisClient(link string) *LLRPCRedisClient {
 	c := new(LLRPCRedisClient)
 	c.link = link
-	c.keychan = make(map[string]chan LLRPC.TaskData)
 
 	c.InitConnection()
 	c.listen()
@@ -71,10 +68,12 @@ func (c *LLRPCRedisClient) publish(taskData *LLRPC.TaskData) error {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 
-	jsondata, _ := json.Marshal(taskData)
-	//fmt.Println(string(jsondata))
+	jsondata, err := json.Marshal(taskData)
+	if err != nil {
+		fmt.Println("PUBLISH json Marshal Error", err.Error())
+	}
 
-	_, err := conn.Do("lpush", taskData.Fun, string(jsondata))
+	_, err = conn.Do("lpush", taskData.Fun, string(jsondata))
 	if err != nil {
 		fmt.Println("PUBLISH Error", err.Error())
 	}
@@ -151,23 +150,16 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 }
 
 func (c *LLRPCRedisClient) newChan(key string) chan LLRPC.TaskData {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	c.keychan[key] = make(chan LLRPC.TaskData)
-	mychan := c.keychan[key]
+	mychan := make(chan LLRPC.TaskData)
+	c.keychan.Store(key, mychan)
 	return mychan
 }
 
 func (c *LLRPCRedisClient) returnChan(uuid string, data LLRPC.TaskData) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-
-	funchan, ok := c.keychan[uuid]
+	value, ok := c.keychan.Load(uuid)
 	if ok {
+		funchan := value.(chan LLRPC.TaskData)
 		funchan <- data
-	} else {
-		//fmt.Println格式化("fun not find %s", fun)
 	}
 }
 
@@ -181,24 +173,20 @@ func (c *LLRPCRedisClient) waitResult(mychan chan LLRPC.TaskData, key string, ti
 
 	for {
 		select {
-
 		case data := <-mychan:
-			//收到结果放进RUnlock()
 			value = data
 			breakFlag = true
 		case <-time.After(time.Duration(timeOut) * time.Second):
-			//超时跳出并且删除
 			breakFlag = true
 			timeOutFlag = true
 		}
+
 		if breakFlag {
 			break
 		}
 	}
-	//将通道的key删除
-	c.lock.Lock()
-	delete(c.keychan, key)
-	c.lock.Unlock()
+
+	c.keychan.Delete(key)
 
 	if timeOutFlag {
 		return LLRPC.TaskData{}, false
