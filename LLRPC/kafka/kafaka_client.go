@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-type LRpcKafkaClient struct {
-	LRpcPubSub
-	LRpcClient
+type LLRPCKafkaClient struct {
+	LLRPCPubSub
+	LLRPCClient
 
 	//读写锁用于keychan的
 	lock sync.RWMutex
@@ -29,19 +29,19 @@ type LRpcKafkaClient struct {
 }
 
 // 初始化消息队列
-func NewLRpcKafkaClient(link string) *LRpcKafkaClient {
-	this := new(LRpcKafkaClient)
+func NewLLRPCKafkaClient(link string) *LLRPCKafkaClient {
+	this := new(LLRPCKafkaClient)
 	this.link = link
 	this.keychan = map[string]chan TaskData{}
 
-	this.init()
+	this.InitConnection()
 	this.listen()
 
 	return this
 }
 
 // 连接服务器
-func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
+func (this *LLRPCKafkaClient) InitConnection() *LLRPCKafkaClient {
 	fmt.Println("连接到服务端")
 	var err error
 
@@ -73,7 +73,7 @@ func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 }
 
 // 发布
-func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
+func (this *LLRPCKafkaClient) publish(taskData *TaskData) error {
 	//fmt.Println("发布")
 	// send message
 	msg := &sarama.ProducerMessage{
@@ -98,7 +98,7 @@ func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
 }
 
 // 订阅
-func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LLRPCKafkaClient) subscribe(funcName string, fn func(TaskData)) error {
 	fmt.Println("订阅函数事件", funcName)
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
@@ -126,7 +126,7 @@ func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error
 	return nil
 }
 
-func (this *LRpcKafkaClient) listen() {
+func (this *LLRPCKafkaClient) listen() {
 	go func() {
 		fmt.Println("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
@@ -138,7 +138,7 @@ func (this *LRpcKafkaClient) listen() {
 
 }
 
-func (this *LRpcKafkaClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
+func (this *LLRPCKafkaClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
 	var err error
 	taskData := TaskData{}
 	//任务id
@@ -169,7 +169,7 @@ func (this *LRpcKafkaClient) Call(funcName string, data string, timeout int64) (
 	return value, err
 }
 
-func (this *LRpcKafkaClient) newChan(key string) chan TaskData {
+func (this *LLRPCKafkaClient) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
 	mychan := this.keychan[key]
@@ -177,7 +177,7 @@ func (this *LRpcKafkaClient) newChan(key string) chan TaskData {
 	return mychan
 }
 
-func (this *LRpcKafkaClient) returnChan(uuid string, data TaskData) {
+func (this *LLRPCKafkaClient) returnChan(uuid string, data TaskData) {
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()
@@ -189,7 +189,7 @@ func (this *LRpcKafkaClient) returnChan(uuid string, data TaskData) {
 }
 
 // 等待任务结果
-func (this *LRpcKafkaClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
+func (this *LLRPCKafkaClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData
 

@@ -7,7 +7,7 @@ var (
 
 )
 
-//调用任务的结构
+// 调用任务的结构
 type TaskData struct {
 	//函数名称
 	Fun string `json:"fun"`
@@ -26,25 +26,25 @@ type TaskData struct {
 	//完成时间
 	CompleteTime int64 `json:"complete_time"`
 }
-type LRpcPubSub interface {
+type LLRPCPubSub interface {
 	//初始化连接
-	init()
+	InitConnection()
 
 	publish(*TaskData) error
 	subscribe(funcName string, fn func(TaskData)) error
 }
 
-type LRpcServer interface {
+type LLRPCServer interface {
 	//初始化连接
-	LRpcPubSub
+	LLRPCPubSub
 
 	//注册函数
 	Router(funcName string, fn func(TaskData) (string, bool))
 }
 
-type LRpcClient interface {
+type LLRPCClient interface {
 	//初始化连接
-	LRpcPubSub
+	LLRPCPubSub
 
 	//调用函数
 	Call(funcName string) (TaskData, error)

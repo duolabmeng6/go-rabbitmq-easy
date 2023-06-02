@@ -27,7 +27,7 @@ func TestClient(t *testing.T) {
 	}, 1000)
 	//amqp://admin:admin@182.92.84.229:5672/
 	//amqp://guest:guest@127.0.0.1:5672/
-	client := NewLRpcRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
+	client := NewLLRPCRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
 	//等一会让监听结果的连上
 	E延时(1000)
 	线程池 := etool.New线程池(100000)
@@ -67,7 +67,7 @@ func TestServer(t *testing.T) {
 		return true
 	}, 1000)
 
-	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
+	server := NewLLRPCRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
 	server.Router("func2", func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
 		//fmt.Println("test", data.Data)
@@ -83,7 +83,7 @@ func TestServer(t *testing.T) {
 
 // 提取1条消息
 func TestServer_one(t *testing.T) {
-	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
+	server := NewLLRPCRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
 	server.Router("func2", func(data LLRPC.TaskData) (string, bool) {
 		//fmt.Println("test", data.Data)
 		//E延时(6000)

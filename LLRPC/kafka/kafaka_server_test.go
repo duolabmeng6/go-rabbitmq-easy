@@ -2,6 +2,7 @@ package kafka
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
 	"github.com/gogf/gf/v2/container/gtype"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcKafkaServer("182.92.84.229:9092")
+	server := NewLLRPCKafkaServer("182.92.84.229:9092")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		fmt.Println("test", data.Data)
 		//E延时(6000)
@@ -21,7 +22,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcKafkaClient("182.92.84.229:9092")
+	client := NewLLRPCKafkaClient("182.92.84.229:9092")
 	for i := 0; i < 1000; i++ {
 		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello", 10)
@@ -60,7 +61,7 @@ func TestServerTongji(t *testing.T) {
 	}, 60*1000)
 
 	go func() {
-		server := NewLRpcKafkaServer("182.92.84.229:9092")
+		server := NewLLRPCKafkaServer("182.92.84.229:9092")
 		server.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
 			//fmt.Println(1)
@@ -69,7 +70,7 @@ func TestServerTongji(t *testing.T) {
 	}()
 
 	go func() {
-		server2 := NewLRpcKafkaServer("182.92.84.229:9092")
+		server2 := NewLLRPCKafkaServer("182.92.84.229:9092")
 		server2.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
 			//fmt.Println(2)
@@ -81,7 +82,7 @@ func TestServerTongji(t *testing.T) {
 }
 
 func TestClientTongjiQps(t *testing.T) {
-	client := NewLRpcKafkaClient("182.92.84.229:9092")
+	client := NewLLRPCKafkaClient("182.92.84.229:9092")
 
 	线程池 := etool.New线程池(10)
 	for {
@@ -100,7 +101,7 @@ func TestClientTongjiQps(t *testing.T) {
 
 // 客户端统计
 func TestCientTongji(t *testing.T) {
-	client := NewLRpcKafkaClient("182.92.84.229:9092")
+	client := NewLLRPCKafkaClient("182.92.84.229:9092")
 
 	时间统计 := New时间统计类()
 

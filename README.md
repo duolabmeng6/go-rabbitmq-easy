@@ -21,8 +21,8 @@ import (
 	"testing"
 )
 
-func TestNewLRpcRabbmit_server(t *testing.T) {
-	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
+func TestNewLLRPCRabbmit_server(t *testing.T) {
+	server := NewLLRPCRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LLRPCRabbmit) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			"test1", // 队列名称
@@ -67,8 +67,8 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 	select {}
 }
 
-func TestNewLRpcRabbmit_client(t *testing.T) {
-	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
+func TestNewLLRPCRabbmit_client(t *testing.T) {
+	server := NewLLRPCRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LLRPCRabbmit) {
 
 	})
 	taskData := LLRPC.TaskData{
@@ -145,7 +145,7 @@ func TestClient(t *testing.T) {
 	}, 1000)
 	//amqp://admin:admin@182.92.84.229:5672/
 	//amqp://guest:guest@127.0.0.1:5672/
-	client := NewLRpcRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
+	client := NewLLRPCRabbmitMQClient("amqp://guest:guest@127.0.0.1:5672/")
 	//等一会让监听结果的连上
 	E延时(1000)
 	线程池 := etool.New线程池(100000)
@@ -185,7 +185,7 @@ func TestServer(t *testing.T) {
 		return true
 	}, 1000)
 
-	server := NewLRpcRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
+	server := NewLLRPCRabbmitMQServer("amqp://guest:guest@127.0.0.1:5672/")
 	server.Router("func2", func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
 		//fmt.Println("test", data.Data)

@@ -2,6 +2,7 @@ package LLRPCRabbmitMQ
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 
 	"encoding/json"
@@ -9,8 +10,8 @@ import (
 	"log"
 )
 
-type LRpcRabbmit struct {
-	LRpcPubSub
+type LLRPCRabbmit struct {
+	LLRPCPubSub
 	amqpURI           string
 	conn              *amqp.Connection
 	channel           *amqp.Channel
@@ -19,22 +20,22 @@ type LRpcRabbmit struct {
 	funcName string
 	msgs     <-chan amqp.Delivery
 	fn       func(TaskData)
-	success  func(channel *LRpcRabbmit)
+	success  func(channel *LLRPCRabbmit)
 }
 
 // 初始化消息队列
-func NewLRpcRabbmit(amqpURI string, success func(this *LRpcRabbmit)) *LRpcRabbmit {
-	this := new(LRpcRabbmit)
+func NewLLRPCRabbmit(amqpURI string, success func(this *LLRPCRabbmit)) *LLRPCRabbmit {
+	this := new(LLRPCRabbmit)
 	this.amqpURI = amqpURI
 	this.success = success
 
-	this.init()
+	this.InitConnection()
 
 	return this
 }
 
 // 连接服务器
-func (this *LRpcRabbmit) init() bool {
+func (this *LLRPCRabbmit) InitConnection() bool {
 	fmt.Println("连接到服务端")
 	var err error
 
@@ -43,15 +44,15 @@ func (this *LRpcRabbmit) init() bool {
 		fmt.Println("重连 amqp.Dial")
 		E延时(int64(ReconnectDelay))
 
-		return this.init()
+		return this.InitConnection()
 	}
 
 	if this.channel, err = this.conn.Channel(); err != nil {
 		//panic("Final to channel :" + err.Error())
 		fmt.Println("重连 Channel")
 		E延时(int64(ReconnectDelay))
-		this.init()
-		return this.init()
+		this.InitConnection()
+		return this.InitConnection()
 	}
 	this.clientNotifyClose = make(chan *amqp.Error)
 	this.channel.NotifyClose(this.clientNotifyClose)
@@ -62,11 +63,11 @@ func (this *LRpcRabbmit) init() bool {
 	return true
 }
 
-func (this *LRpcRabbmit) handleReconnect() {
+func (this *LLRPCRabbmit) handleReconnect() {
 	for err := range this.clientNotifyClose {
 		log.Println("断开了连接,", err.Code)
 		E延时(3000)
-		if this.init() {
+		if this.InitConnection() {
 			log.Println("重新连接订阅")
 
 		}
@@ -75,7 +76,7 @@ func (this *LRpcRabbmit) handleReconnect() {
 }
 
 // 发布
-func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err error) {
+func (this *LLRPCRabbmit) Publish(queueName string, taskData *TaskData) (err error) {
 	//fmt.Println("发布消息", queueName)
 
 	jsondata, _ := json.Marshal(taskData)
@@ -99,7 +100,7 @@ func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err erro
 }
 
 // 订阅
-func (this *LRpcRabbmit) Subscribe(fn func(TaskData)) error {
+func (this *LLRPCRabbmit) Subscribe(fn func(TaskData)) error {
 	this.fn = fn
 
 	return nil

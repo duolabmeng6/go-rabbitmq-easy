@@ -3,15 +3,16 @@ package kafka
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
+	"fmt"
 	"github.com/Shopify/sarama"
 	. "github.com/duolabmeng6/goefun/ecore"
 
 	"github.com/gogf/gf/v2/container/gtype"
 )
 
-type LRpcKafkaServer struct {
-	LRpcPubSub
-	LRpcServer
+type LLRPCKafkaServer struct {
+	LLRPCPubSub
+	LLRPCServer
 	consumer  sarama.Consumer
 	producer  sarama.AsyncProducer
 	pushCount *gtype.Int
@@ -19,16 +20,16 @@ type LRpcKafkaServer struct {
 }
 
 // 初始化消息队列
-func NewLRpcKafkaServer(link string) *LRpcKafkaServer {
-	this := new(LRpcKafkaServer)
+func NewLLRPCKafkaServer(link string) *LLRPCKafkaServer {
+	this := new(LLRPCKafkaServer)
 	this.link = link
-	this.init()
+	this.InitConnection()
 
 	return this
 }
 
 // 连接服务器
-func (this *LRpcKafkaServer) init() *LRpcKafkaServer {
+func (this *LLRPCKafkaServer) InitConnection() *LLRPCKafkaServer {
 	fmt.Println("连接到服务端")
 	var err error
 
@@ -60,7 +61,7 @@ func (this *LRpcKafkaServer) init() *LRpcKafkaServer {
 }
 
 // 发布
-func (this *LRpcKafkaServer) publish(taskData *TaskData) error {
+func (this *LLRPCKafkaServer) publish(taskData *TaskData) error {
 	//fmt.Println("发布")
 	// send message
 	msg := &sarama.ProducerMessage{
@@ -86,7 +87,7 @@ func (this *LRpcKafkaServer) publish(taskData *TaskData) error {
 }
 
 // 订阅
-func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error {
+func (this *LLRPCKafkaServer) subscribe(funcName string, fn func(TaskData)) error {
 	fmt.Println("订阅函数事件", funcName)
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
@@ -107,7 +108,7 @@ func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error
 			go fn(taskData)
 
 		case err := <-partition_consumer.Errors():
-			fmt.Println格式化("err :%s\n", err.Error())
+			fmt.Printf("err :%s\n", err.Error())
 		}
 	}
 
@@ -115,7 +116,7 @@ func (this *LRpcKafkaServer) subscribe(funcName string, fn func(TaskData)) error
 }
 
 // 订阅
-func (this *LRpcKafkaServer) Router(funcName string, fn func(TaskData) (string, bool)) {
+func (this *LLRPCKafkaServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	fmt.Println("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//fmt.Println("收到任务数据", data)

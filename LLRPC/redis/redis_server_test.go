@@ -1,7 +1,7 @@
 package redis
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcRedisServer("127.0.0.1:6379")
-	server.Router("func1", func(data TaskData) (string, bool) {
+	server := NewLLRPCRedisServer("127.0.0.1:6379")
+	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
 		fmt.Println("test", data.Data)
 
 		return data.Data + " ok", true
@@ -21,7 +21,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcRedisClient("127.0.0.1:6379")
+	client := NewLLRPCRedisClient("127.0.0.1:6379")
 	for i := 0; i < 100; i++ {
 		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello")
@@ -51,8 +51,8 @@ func Test测试服务器能力(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	server := NewLRpcRedisServer("127.0.0.1:6379")
-	server.Router("func1", func(data TaskData) (string, bool) {
+	server := NewLLRPCRedisServer("127.0.0.1:6379")
+	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
 
 		return data.Data + " ok", true
@@ -61,7 +61,7 @@ func Test测试服务器能力(t *testing.T) {
 }
 
 func Test测试服务器qps(t *testing.T) {
-	client := NewLRpcRedisClient("127.0.0.1:6379")
+	client := NewLLRPCRedisClient("127.0.0.1:6379")
 
 	线程池 := etool.New线程池(10)
 	for {
@@ -80,7 +80,7 @@ func Test测试服务器qps(t *testing.T) {
 
 // 客户端统计
 func Test客户端统计(t *testing.T) {
-	client := NewLRpcRedisClient("127.0.0.1:6379")
+	client := NewLLRPCRedisClient("127.0.0.1:6379")
 
 	时间统计 := New时间统计类()
 

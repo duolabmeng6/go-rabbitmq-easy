@@ -2,34 +2,35 @@ package LLRPCRabbmitMQ
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 
 	"encoding/json"
 )
 
-type LRpcRabbmitMQServer struct {
-	LRpcPubSub
-	LRpcServer
+type LLRPCRabbmitMQServer struct {
+	LLRPCPubSub
+	LLRPCServer
 
 	//发送用的
-	send *LRpcRabbmit
+	send *LLRPCRabbmit
 
 	amqpURI string
 }
 
 // 初始化消息队列
-func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
-	this := new(LRpcRabbmitMQServer)
+func NewLLRPCRabbmitMQServer(amqpURI string) *LLRPCRabbmitMQServer {
+	this := new(LLRPCRabbmitMQServer)
 	this.amqpURI = amqpURI
-	this.init()
+	this.InitConnection()
 
 	return this
 }
 
 // 连接服务器
-func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
+func (this *LLRPCRabbmitMQServer) InitConnection() *LLRPCRabbmitMQServer {
 	fmt.Println("连接到服务端")
-	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
+	this.send = NewLLRPCRabbmit(this.amqpURI, func(this *LLRPCRabbmit) {
 
 	})
 
@@ -37,15 +38,15 @@ func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
 }
 
 // 发布
-func (this *LRpcRabbmitMQServer) publish(taskData *TaskData) (err error) {
+func (this *LLRPCRabbmitMQServer) publish(taskData *TaskData) (err error) {
 
 	return this.send.Publish(taskData.ReportTo, taskData)
 
 }
 
 // 订阅
-func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
-	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
+func (this *LLRPCRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
+	NewLLRPCRabbmit(this.amqpURI, func(this *LLRPCRabbmit) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
@@ -86,7 +87,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 }
 
 // 订阅
-func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
+func (this *LLRPCRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
 	fmt.Println("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//fmt.Println("收到任务数据", data)

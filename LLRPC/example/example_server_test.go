@@ -10,7 +10,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLRpcExampleServer("127.0.0.1:6379")
+	server := NewLLRPCExampleServer("127.0.0.1:6379")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		fmt.Println("test", data.Data)
 
@@ -20,7 +20,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLRpcExampleClient("127.0.0.1:6379")
+	client := NewLLRPCExampleClient("127.0.0.1:6379")
 	for i := 0; i < 100; i++ {
 		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello")
@@ -51,7 +51,7 @@ func TestServerTongji(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	server := NewLRpcExampleServer("127.0.0.1:6379")
+	server := NewLLRPCExampleServer("127.0.0.1:6379")
 	server.Router("func1", func(data TaskData) (string, bool) {
 		successCount.Add(1)
 
@@ -61,7 +61,7 @@ func TestServerTongji(t *testing.T) {
 }
 
 func TestClientTongjiQps(t *testing.T) {
-	client := NewLRpcExampleClient("127.0.0.1:6379")
+	client := NewLLRPCExampleClient("127.0.0.1:6379")
 
 	线程池 := etool.New线程池(10)
 	for {
@@ -80,7 +80,7 @@ func TestClientTongjiQps(t *testing.T) {
 
 // 客户端统计
 func TestCientTongji(t *testing.T) {
-	client := NewLRpcExampleClient("127.0.0.1:6379")
+	client := NewLLRPCExampleClient("127.0.0.1:6379")
 
 	时间统计 := New时间统计类()
 
