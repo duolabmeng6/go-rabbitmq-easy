@@ -2,6 +2,7 @@ package redis
 
 import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
 	"github.com/gogf/gf/v2/container/gtype"
@@ -12,7 +13,7 @@ import (
 func TestServer(t *testing.T) {
 	server := NewLRpcRedisServer("127.0.0.1:6379")
 	server.Router("func1", func(data TaskData) (string, bool) {
-		E调试输出("test", data.Data)
+		fmt.Println("test", data.Data)
 
 		return data.Data + " ok", true
 	})
@@ -22,21 +23,20 @@ func TestServer(t *testing.T) {
 func TestClient(t *testing.T) {
 	client := NewLRpcRedisClient("127.0.0.1:6379")
 	for i := 0; i < 100; i++ {
-		E调试输出("调用函数 func1")
+		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello")
-		E调试输出("func1 结果", ret.Result, err)
+		fmt.Println("func1 结果", ret.Result, err)
 	}
 }
 
 // 服务端处理能力测试
-func TestServerTongji(t *testing.T) {
-
+func Test测试服务器能力(t *testing.T) {
 	successCount := gtype.NewInt()
 	时间统计 := New时间统计类()
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"接收任务数量", successCount,
 			"协程数量", runtime.NumGoroutine(),
 			"耗时", 时间统计.E取秒(),
@@ -60,7 +60,7 @@ func TestServerTongji(t *testing.T) {
 	select {}
 }
 
-func TestClientTongjiQps(t *testing.T) {
+func Test测试服务器qps(t *testing.T) {
 	client := NewLRpcRedisClient("127.0.0.1:6379")
 
 	线程池 := etool.New线程池(10)
@@ -70,7 +70,7 @@ func TestClientTongjiQps(t *testing.T) {
 			defer 线程池.E完成()
 			ret, err := client.Call("func1", "hello")
 
-			E调试输出("测试调用函数 func1 结果", ret.Result, err)
+			fmt.Println("测试调用函数 func1 结果", ret.Result, err)
 
 		}()
 	}
@@ -79,7 +79,7 @@ func TestClientTongjiQps(t *testing.T) {
 }
 
 // 客户端统计
-func TestCientTongji(t *testing.T) {
+func Test客户端统计(t *testing.T) {
 	client := NewLRpcRedisClient("127.0.0.1:6379")
 
 	时间统计 := New时间统计类()
@@ -88,7 +88,7 @@ func TestCientTongji(t *testing.T) {
 	errorCount := gtype.NewInt()
 	successCount := gtype.NewInt()
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"错误数量", errorCount.Val(),
 			"成功数量", successCount.Val(),
 			"启动数量", stratCount.Val(),
@@ -113,14 +113,14 @@ func TestCientTongji(t *testing.T) {
 			defer 线程池.E完成()
 			stratCount.Add(1)
 			//提交的时候写log
-			//E调试输出("测试调用函数")
+			//fmt.Println("测试调用函数")
 
 			ret, err := client.Call("func1", "hello")
 
-			//E调试输出("测试调用函数 func1 结果", ret, err)
-			//E调试输出(E到文本(res), err)
+			//fmt.Println("测试调用函数 func1 结果", ret, err)
+			//fmt.Println(E到文本(res), err)
 			if ret.Result != "hello ok" {
-				E调试输出("调用错误", "返回结果", ret.Result, "错误提示", err)
+				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
 
 				errorCount.Add(1)
 			} else {

@@ -36,8 +36,8 @@ func NewLRpcExampleClient(link string) *LRpcExampleClient {
 	//this.publish(t)
 	//
 	//this.subscribe("aaa", func(data TaskData) {
-	//	E调试输出("收到数据")
-	//	E调试输出(data)
+	//	fmt.Println("收到数据")
+	//	fmt.Println(data)
 	//
 	//})
 
@@ -46,30 +46,30 @@ func NewLRpcExampleClient(link string) *LRpcExampleClient {
 
 // 连接服务器
 func (this *LRpcExampleClient) init() *LRpcExampleClient {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 
 	return this
 }
 
 // 发布
 func (this *LRpcExampleClient) publish(taskData *TaskData) error {
-	E调试输出("发布")
+	fmt.Println("发布")
 
 	return nil
 }
 
 // 订阅
 func (this *LRpcExampleClient) subscribe(funcName string, fn func(TaskData)) error {
-	E调试输出("订阅函数事件", funcName)
+	fmt.Println("订阅函数事件", funcName)
 
 	return nil
 }
 
 func (this *LRpcExampleClient) listen() {
 	go func() {
-		E调试输出("注册回调结果监听", "return")
+		fmt.Println("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
-			E调试输出("收到回调结果:", data)
+			fmt.Println("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -98,7 +98,7 @@ func (this *LRpcExampleClient) Call(funcName string, data string) (TaskData, err
 
 	this.publish(&taskData)
 
-	E调试输出("uuid", taskData.UUID)
+	fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, 10)
 	if flag == false {
@@ -123,7 +123,7 @@ func (this *LRpcExampleClient) returnChan(uuid string, data TaskData) {
 	if ok {
 		funchan <- data
 	} else {
-		//E调试输出格式化("fun not find %s", fun)
+		//fmt.Println格式化("fun not find %s", fun)
 	}
 }
 

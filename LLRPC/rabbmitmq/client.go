@@ -42,7 +42,7 @@ func NewLRpcRabbmitMQClient(amqpURI string) *LRpcRabbmitMQClient {
 
 // 连接服务器
 func (this *LRpcRabbmitMQClient) init() *LRpcRabbmitMQClient {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
 	})
@@ -58,7 +58,7 @@ func (this *LRpcRabbmitMQClient) publish(taskData *TaskData) (err error) {
 func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) error {
 
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
-		E调试输出("连接成功开始订阅队列")
+		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
 			false,    // 是否需要持久化
@@ -68,7 +68,7 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 			nil,      // arguments
 		)
 		if err != nil {
-			E调试输出("QueueDeclare", err)
+			fmt.Println("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -81,7 +81,7 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 			nil,    // args
 		)
 		if err != nil {
-			E调试输出("Consume", err)
+			fmt.Println("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -100,9 +100,9 @@ func (this *LRpcRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) e
 func (this *LRpcRabbmitMQClient) listen() {
 	go func() {
 		this.receive_result_name = "receive_result_" + etool.E取UUID()
-		E调试输出("注册回调结果监听", this.receive_result_name)
+		fmt.Println("注册回调结果监听", this.receive_result_name)
 		this.subscribe(this.receive_result_name, func(data TaskData) {
-			//E调试输出("收到回调结果:", data)
+			//fmt.Println("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -130,7 +130,7 @@ func (this *LRpcRabbmitMQClient) Call(funcName string, data string, timeout int6
 
 	this.publish(&taskData)
 
-	//E调试输出("uuid", taskData.UUID)
+	//fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, taskData.TimeOut)
 	if flag == false {
@@ -155,7 +155,7 @@ func (this *LRpcRabbmitMQClient) returnChan(uuid string, data TaskData) {
 	if ok {
 		funchan <- data
 	} else {
-		//E调试输出格式化("fun not find %s", fun)
+		//fmt.Println格式化("fun not find %s", fun)
 	}
 }
 

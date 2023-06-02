@@ -42,7 +42,7 @@ func NewLRpcKafkaClient(link string) *LRpcKafkaClient {
 
 // 连接服务器
 func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 	var err error
 
 	config := sarama.NewConfig()
@@ -52,7 +52,7 @@ func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 	// consumer
 	this.consumer, err = sarama.NewConsumer([]string{this.link}, config)
 	if err != nil {
-		E调试输出格式化("consumer_test create consumer error %s\n", err.Error())
+		fmt.Println格式化("consumer_test create consumer error %s\n", err.Error())
 		return this
 	}
 
@@ -65,7 +65,7 @@ func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 
 	this.producer, err = sarama.NewAsyncProducer([]string{this.link}, config2)
 	if err != nil {
-		E调试输出格式化("producer_test create producer error :%s\n", err.Error())
+		fmt.Println格式化("producer_test create producer error :%s\n", err.Error())
 		return this
 	}
 
@@ -74,7 +74,7 @@ func (this *LRpcKafkaClient) init() *LRpcKafkaClient {
 
 // 发布
 func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
-	//E调试输出("发布")
+	//fmt.Println("发布")
 	// send message
 	msg := &sarama.ProducerMessage{
 		Topic: taskData.Fun,
@@ -90,36 +90,36 @@ func (this *LRpcKafkaClient) publish(taskData *TaskData) error {
 
 	select {
 	case _ = <-this.producer.Successes():
-		//E调试输出格式化("offset: %d,  timestamp: %s", suc.Offset, suc.Timestamp.String())
+		//fmt.Println格式化("offset: %d,  timestamp: %s", suc.Offset, suc.Timestamp.String())
 	case _ = <-this.producer.Errors():
-		//E调试输出格式化("err: %s\n", fail.Err.Error())
+		//fmt.Println格式化("err: %s\n", fail.Err.Error())
 	}
 	return nil
 }
 
 // 订阅
 func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error {
-	E调试输出("订阅函数事件", funcName)
+	fmt.Println("订阅函数事件", funcName)
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
 	if err != nil {
-		E调试输出格式化("try create partition_consumer error %s\n", err.Error())
+		fmt.Println格式化("try create partition_consumer error %s\n", err.Error())
 		return nil
 	}
 
 	for {
 		select {
 		case msg := <-partition_consumer.Messages():
-			//E调试输出格式化("msg offset: %d, partition: %d, timestamp: %s, value: %s\n",
+			//fmt.Println格式化("msg offset: %d, partition: %d, timestamp: %s, value: %s\n",
 			//	msg.Offset, msg.Partition, msg.Timestamp.String(), string(msg.Value))
 
 			taskData := TaskData{}
 			json.Unmarshal(msg.Value, &taskData)
-			//E调试输出("收到数据", taskData)
+			//fmt.Println("收到数据", taskData)
 			go fn(taskData)
 
 		case err := <-partition_consumer.Errors():
-			E调试输出格式化("err :%s\n", err.Error())
+			fmt.Println格式化("err :%s\n", err.Error())
 		}
 	}
 
@@ -128,9 +128,9 @@ func (this *LRpcKafkaClient) subscribe(funcName string, fn func(TaskData)) error
 
 func (this *LRpcKafkaClient) listen() {
 	go func() {
-		E调试输出("注册回调结果监听", "return")
+		fmt.Println("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
-			//E调试输出("收到回调结果:", data)
+			//fmt.Println("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -159,7 +159,7 @@ func (this *LRpcKafkaClient) Call(funcName string, data string, timeout int64) (
 
 	this.publish(&taskData)
 
-	//E调试输出("uuid", taskData.UUID)
+	//fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, taskData.TimeOut)
 	if flag == false {
@@ -184,7 +184,7 @@ func (this *LRpcKafkaClient) returnChan(uuid string, data TaskData) {
 	if ok {
 		funchan <- data
 	} else {
-		//E调试输出格式化("fun not find %s", fun)
+		//fmt.Println格式化("fun not find %s", fun)
 	}
 }
 

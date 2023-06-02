@@ -23,7 +23,7 @@ import (
 
 func TestNewLRpcRabbmit_server(t *testing.T) {
 	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
-		E调试输出("连接成功开始订阅队列")
+		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			"test1", // 队列名称
 			true,    // 是否需要持久化
@@ -33,7 +33,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,     // arguments
 		)
 		if err != nil {
-			E调试输出("QueueDeclare", err)
+			fmt.Println("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -46,7 +46,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,    // args
 		)
 		if err != nil {
-			E调试输出("Consume", err)
+			fmt.Println("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -61,7 +61,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 	})
 
 	server.Subscribe(func(data LLRPC.TaskData) {
-		E调试输出("收到数据", data.Data)
+		fmt.Println("收到数据", data.Data)
 	})
 
 	select {}
@@ -135,7 +135,7 @@ func TestClient(t *testing.T) {
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"客户端",
 			"成功数据", successCount.Val(),
 			"失败数量", errorCount.Val(),
@@ -177,7 +177,7 @@ func TestServer(t *testing.T) {
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"服务端",
 			"成功数据", successCount.Val(),
 			"协程数量", runtime.NumGoroutine(),

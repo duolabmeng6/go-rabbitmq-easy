@@ -28,7 +28,7 @@ func NewLRpcRabbmitMQServer(amqpURI string) *LRpcRabbmitMQServer {
 
 // 连接服务器
 func (this *LRpcRabbmitMQServer) init() *LRpcRabbmitMQServer {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 	this.send = NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
 
 	})
@@ -46,7 +46,7 @@ func (this *LRpcRabbmitMQServer) publish(taskData *TaskData) (err error) {
 // 订阅
 func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
 	NewLRpcRabbmit(this.amqpURI, func(this *LRpcRabbmit) {
-		E调试输出("连接成功开始订阅队列")
+		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
 			true,     // 是否需要持久化
@@ -56,7 +56,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 			nil,      // arguments
 		)
 		if err != nil {
-			E调试输出("QueueDeclare", err)
+			fmt.Println("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -69,7 +69,7 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 			nil,    // args
 		)
 		if err != nil {
-			E调试输出("Consume", err)
+			fmt.Println("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -87,17 +87,17 @@ func (this *LRpcRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) e
 
 // 订阅
 func (this *LRpcRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
-	E调试输出("注册函数", funcName)
+	fmt.Println("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
-		//E调试输出("收到任务数据", data)
+		//fmt.Println("收到任务数据", data)
 		if data.StartTime/1000+data.TimeOut < E取现行时间().E取时间戳() {
-			//E调试输出格式化("任务超时抛弃 %s \r\n", data.Fun)
+			//fmt.Println格式化("任务超时抛弃 %s \r\n", data.Fun)
 			return
 		}
 
 		redata, flag := fn(data)
 		data.Result = redata
-		//E调试输出("处理完成", data, "将结果发布到", data.ReportTo)
+		//fmt.Println("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
 			//将结果返回给调用的客户端

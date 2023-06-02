@@ -4,6 +4,7 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"errors"
+	"fmt"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
 	"github.com/gomodule/redigo/redis"
@@ -40,8 +41,8 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 	//this.publish(t)
 	//
 	//this.subscribe("aaa", func(data TaskData) {
-	//	E调试输出("收到数据")
-	//	E调试输出(data)
+	//	fmt.Println("收到数据")
+	//	fmt.Println(data)
 	//
 	//})
 
@@ -50,7 +51,7 @@ func NewLRpcRedisClient(link string) *LRpcRedisClient {
 
 // 连接服务器
 func (this *LRpcRedisClient) init() *LRpcRedisClient {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 	this.redisPool = &redis.Pool{
 		MaxIdle:     100,
 		MaxActive:   0,
@@ -75,17 +76,17 @@ func (this *LRpcRedisClient) init() *LRpcRedisClient {
 
 // 发布
 func (this *LRpcRedisClient) publish(taskData *TaskData) error {
-	//E调试输出("发布")
+	//fmt.Println("发布")
 
 	conn := this.redisPool.Get()
 	defer conn.Close()
 
 	jsondata, _ := json.Marshal(taskData)
-	//E调试输出(string(jsondata))
+	//fmt.Println(string(jsondata))
 
 	_, err := conn.Do("lpush", taskData.Fun, string(jsondata))
 	if err != nil {
-		E调试输出("PUBLISH Error", err.Error())
+		fmt.Println("PUBLISH Error", err.Error())
 	}
 
 	return nil
@@ -93,7 +94,7 @@ func (this *LRpcRedisClient) publish(taskData *TaskData) error {
 
 // 订阅
 func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error {
-	E调试输出("订阅函数事件", funcName)
+	fmt.Println("订阅函数事件", funcName)
 
 	go func() {
 		for {
@@ -105,7 +106,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 			ret, _ := redis.Strings(conn.Do("brpop", funcName, 10))
 			if len(ret) == 0 {
 			} else {
-				//E调试输出格式化("subscribe message: %s\n", ret[1])
+				//fmt.Println格式化("subscribe message: %s\n", ret[1])
 
 				json.Unmarshal([]byte(ret[1]), &taskData)
 				fn(taskData)
@@ -119,7 +120,7 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	//	for {
 	//		switch v := psc.Receive().(type) {
 	//		case redis.Message:
-	//			E调试输出格式化("%s: message: %s\n", v.Channel, v.Data)
+	//			fmt.Println格式化("%s: message: %s\n", v.Channel, v.Data)
 	//
 	//			taskData := TaskData{}
 	//			json.Unmarshal(TaskData( v.Data), &taskData)
@@ -127,9 +128,9 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 	//			fn(taskData)
 	//
 	//		case redis.Subscription:
-	//			E调试输出格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
+	//			fmt.Println格式化("%s: %s %d\n", v.Channel, v.Kind, v.Count)
 	//		case error:
-	//			E调试输出("subscribe error", v)
+	//			fmt.Println("subscribe error", v)
 	//			//return v
 	//
 	//			psc = redis.PubSubConn{Conn: this.redisPool.Get()}
@@ -145,9 +146,9 @@ func (this *LRpcRedisClient) subscribe(funcName string, fn func(TaskData)) error
 
 func (this *LRpcRedisClient) listen() {
 	go func() {
-		E调试输出("注册回调结果监听", "return")
+		fmt.Println("注册回调结果监听", "return")
 		this.subscribe("return", func(data TaskData) {
-			E调试输出("收到回调结果:", data)
+			fmt.Println("收到回调结果:", data)
 			this.returnChan(data.UUID, data)
 
 		})
@@ -176,7 +177,7 @@ func (this *LRpcRedisClient) Call(funcName string, data string) (TaskData, error
 
 	this.publish(&taskData)
 
-	E调试输出("uuid", taskData.UUID)
+	fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := this.waitResult(mychan, taskData.UUID, 10)
 	if flag == false {
@@ -201,7 +202,7 @@ func (this *LRpcRedisClient) returnChan(uuid string, data TaskData) {
 	if ok {
 		funchan <- data
 	} else {
-		//E调试输出格式化("fun not find %s", fun)
+		//fmt.Println格式化("fun not find %s", fun)
 	}
 }
 

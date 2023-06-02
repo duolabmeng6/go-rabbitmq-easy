@@ -12,7 +12,7 @@ import (
 func TestServer(t *testing.T) {
 	server := NewLRpcKafkaServer("182.92.84.229:9092")
 	server.Router("func1", func(data TaskData) (string, bool) {
-		E调试输出("test", data.Data)
+		fmt.Println("test", data.Data)
 		//E延时(6000)
 
 		return data.Data + " ok", true
@@ -23,14 +23,14 @@ func TestServer(t *testing.T) {
 func TestClient(t *testing.T) {
 	client := NewLRpcKafkaClient("182.92.84.229:9092")
 	for i := 0; i < 1000; i++ {
-		E调试输出("调用函数 func1")
+		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello", 10)
 		if err != nil {
-			E调试输出("func1 调用错误", err)
+			fmt.Println("func1 调用错误", err)
 
 			continue
 		}
-		E调试输出("func1 结果", ret.Result, err)
+		fmt.Println("func1 结果", ret.Result, err)
 	}
 	select {}
 
@@ -44,7 +44,7 @@ func TestServerTongji(t *testing.T) {
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"接收任务数量", successCount,
 			"协程数量", runtime.NumGoroutine(),
 			"耗时", 时间统计.E取秒(),
@@ -63,7 +63,7 @@ func TestServerTongji(t *testing.T) {
 		server := NewLRpcKafkaServer("182.92.84.229:9092")
 		server.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
-			//E调试输出(1)
+			//fmt.Println(1)
 			return data.Data + " ok", true
 		})
 	}()
@@ -72,7 +72,7 @@ func TestServerTongji(t *testing.T) {
 		server2 := NewLRpcKafkaServer("182.92.84.229:9092")
 		server2.Router("func1", func(data TaskData) (string, bool) {
 			successCount.Add(1)
-			//E调试输出(2)
+			//fmt.Println(2)
 			return data.Data + " ok", true
 		})
 	}()
@@ -90,7 +90,7 @@ func TestClientTongjiQps(t *testing.T) {
 			defer 线程池.E完成()
 			ret, err := client.Call("func1", "hello", 10)
 
-			E调试输出("测试调用函数 func1 结果", ret.Result, err)
+			fmt.Println("测试调用函数 func1 结果", ret.Result, err)
 
 		}()
 	}
@@ -108,7 +108,7 @@ func TestCientTongji(t *testing.T) {
 	errorCount := gtype.NewInt()
 	successCount := gtype.NewInt()
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"错误数量", errorCount.Val(),
 			"成功数量", successCount.Val(),
 			"启动数量", stratCount.Val(),
@@ -133,14 +133,14 @@ func TestCientTongji(t *testing.T) {
 			defer 线程池.E完成()
 			stratCount.Add(1)
 			//提交的时候写log
-			//E调试输出("测试调用函数")
+			//fmt.Println("测试调用函数")
 
 			ret, err := client.Call("func1", "hello", 10)
 
-			//E调试输出("测试调用函数 func1 结果", ret, err)
-			//E调试输出(E到文本(res), err)
+			//fmt.Println("测试调用函数 func1 结果", ret, err)
+			//fmt.Println(E到文本(res), err)
 			if ret.Result != "hello ok" {
-				E调试输出("调用错误", "返回结果", ret.Result, "错误提示", err)
+				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
 
 				errorCount.Add(1)
 			} else {

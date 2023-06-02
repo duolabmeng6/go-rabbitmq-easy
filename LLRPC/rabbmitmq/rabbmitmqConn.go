@@ -35,12 +35,12 @@ func NewLRpcRabbmit(amqpURI string, success func(this *LRpcRabbmit)) *LRpcRabbmi
 
 // 连接服务器
 func (this *LRpcRabbmit) init() bool {
-	E调试输出("连接到服务端")
+	fmt.Println("连接到服务端")
 	var err error
 
 	if this.conn, err = amqp.Dial(this.amqpURI); err != nil {
 		//panic("Final to conn  :" + err.Error())
-		E调试输出("重连 amqp.Dial")
+		fmt.Println("重连 amqp.Dial")
 		E延时(int64(ReconnectDelay))
 
 		return this.init()
@@ -48,7 +48,7 @@ func (this *LRpcRabbmit) init() bool {
 
 	if this.channel, err = this.conn.Channel(); err != nil {
 		//panic("Final to channel :" + err.Error())
-		E调试输出("重连 Channel")
+		fmt.Println("重连 Channel")
 		E延时(int64(ReconnectDelay))
 		this.init()
 		return this.init()
@@ -76,7 +76,7 @@ func (this *LRpcRabbmit) handleReconnect() {
 
 // 发布
 func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err error) {
-	//E调试输出("发布消息", queueName)
+	//fmt.Println("发布消息", queueName)
 
 	jsondata, _ := json.Marshal(taskData)
 	errCount := 0
@@ -84,7 +84,7 @@ func (this *LRpcRabbmit) Publish(queueName string, taskData *TaskData) (err erro
 		if err = this.channel.Publish("", queueName, false, false, amqp.Publishing{
 			Body: jsondata,
 		}); err != nil {
-			E调试输出("重试 Publish " + err.Error())
+			fmt.Println("重试 Publish " + err.Error())
 			E延时(int64(ResendDelay))
 			if errCount < ResendCount {
 				errCount++

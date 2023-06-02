@@ -9,7 +9,7 @@ import (
 
 func TestNewLRpcRabbmit_server(t *testing.T) {
 	server := NewLRpcRabbmit("amqp://guest:guest@127.0.0.1:5672/", func(this *LRpcRabbmit) {
-		E调试输出("连接成功开始订阅队列")
+		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			"test1", // 队列名称
 			true,    // 是否需要持久化
@@ -19,7 +19,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,     // arguments
 		)
 		if err != nil {
-			E调试输出("QueueDeclare", err)
+			fmt.Println("QueueDeclare", err)
 		}
 		//监听队列
 		this.msgs, err = this.channel.Consume(
@@ -32,7 +32,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 			nil,    // args
 		)
 		if err != nil {
-			E调试输出("Consume", err)
+			fmt.Println("Consume", err)
 		}
 		go func() {
 			for d := range this.msgs {
@@ -47,7 +47,7 @@ func TestNewLRpcRabbmit_server(t *testing.T) {
 	})
 
 	server.Subscribe(func(data LLRPC.TaskData) {
-		E调试输出("收到数据", data.Data)
+		fmt.Println("收到数据", data.Data)
 	})
 
 	select {}

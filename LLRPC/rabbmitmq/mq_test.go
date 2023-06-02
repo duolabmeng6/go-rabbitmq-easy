@@ -17,7 +17,7 @@ func TestClient(t *testing.T) {
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"客户端",
 			"成功数据", successCount.Val(),
 			"失败数量", errorCount.Val(),
@@ -59,7 +59,7 @@ func TestServer(t *testing.T) {
 	时间统计.E开始()
 
 	E时钟_创建(func() bool {
-		E调试输出(
+		fmt.Println(
 			"服务端",
 			"成功数据", successCount.Val(),
 			"协程数量", runtime.NumGoroutine(),
