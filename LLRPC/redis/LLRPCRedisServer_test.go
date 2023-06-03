@@ -34,7 +34,6 @@ func Test测试服务器能力(t *testing.T) {
 	successCount := gtype.NewInt()
 	时间统计 := New时间统计类()
 	时间统计.E开始()
-
 	E时钟_创建(func() bool {
 		fmt.Println(
 			"接收任务数量", successCount,
@@ -44,7 +43,6 @@ func Test测试服务器能力(t *testing.T) {
 		)
 		return true
 	}, 1000)
-
 	E时钟_创建(func() bool {
 		successCount.Set(0)
 		时间统计.E开始()
@@ -54,7 +52,6 @@ func Test测试服务器能力(t *testing.T) {
 	server := NewLLRPCRedisServer("127.0.0.1:6379")
 	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
-
 		return data.Data + " ok", true
 	})
 	select {}
@@ -80,7 +77,6 @@ func Test测试服务器qps(t *testing.T) {
 
 // 客户端统计
 func Test客户端统计(t *testing.T) {
-
 	时间统计 := New时间统计类()
 	stratCount := gtype.NewInt()
 	errorCount := gtype.NewInt()
@@ -104,28 +100,19 @@ func Test客户端统计(t *testing.T) {
 	}, 60*1000)
 
 	client := NewLLRPCRedisClient("127.0.0.1:6379")
-
-	线程池 := etool.New线程池(10)
-	for i := 1; i <= 1000*1; i++ {
+	线程池 := etool.New线程池(100)
+	for i := 1; i <= 10000*10; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
 			stratCount.Add(1)
-			//提交的时候写log
-			//fmt.Println("测试调用函数")
-
 			ret, err := client.Call("func1", "hello")
-
-			//fmt.Println("测试调用函数 func1 结果", ret, err)
-			//fmt.Println(E到文本(res), err)
 			if ret.Result != "hello ok" {
 				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
-
 				errorCount.Add(1)
 			} else {
 				successCount.Add(1)
 			}
-
 		}(i)
 	}
 

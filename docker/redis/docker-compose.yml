@@ -1,0 +1,19 @@
+# redis 的 docker-compose 配置文件
+
+version: '3.1'
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    hostname: redis
+    ports:
+      - 6379:6379
+    environment:
+      TZ: Asia/Shanghai
+#      REDIS_PASSWORD: 123456
+    volumes:
+      - ./data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server
+

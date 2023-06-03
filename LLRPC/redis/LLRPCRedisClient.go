@@ -39,7 +39,7 @@ func NewLLRPCRedisClient(link string) *LLRPCRedisClient {
 func (c *LLRPCRedisClient) InitConnection() *LLRPCRedisClient {
 	fmt.Println("连接到服务端")
 	c.redisPool = &redis.Pool{
-		MaxIdle:     100,
+		MaxIdle:     1000,
 		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
@@ -66,7 +66,6 @@ func (c *LLRPCRedisClient) publish(taskData *LLRPC.TaskData) error {
 	//fmt.Println("发布")
 
 	conn := c.redisPool.Get()
-	defer conn.Close()
 
 	jsondata, err := json.Marshal(taskData)
 	if err != nil {
@@ -77,6 +76,7 @@ func (c *LLRPCRedisClient) publish(taskData *LLRPC.TaskData) error {
 	if err != nil {
 		fmt.Println("PUBLISH Error", err.Error())
 	}
+	conn.Close()
 
 	return nil
 }
@@ -110,7 +110,7 @@ func (c *LLRPCRedisClient) listen() {
 	go func() {
 		fmt.Println("注册回调结果监听", "return")
 		c.subscribe("return", func(data LLRPC.TaskData) {
-			fmt.Println("收到回调结果:", data)
+			//fmt.Println("收到回调结果:", data)
 			c.returnChan(data.UUID, data)
 
 		})
@@ -139,7 +139,7 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 
 	c.publish(&taskData)
 
-	fmt.Println("uuid", taskData.UUID)
+	//fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
 	value, flag := c.waitResult(mychan, taskData.UUID, 10)
 	if flag == false {

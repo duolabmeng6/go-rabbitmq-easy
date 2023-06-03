@@ -4,6 +4,7 @@ import (
 	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"fmt"
+	"github.com/duolabmeng6/goefun/ecore"
 
 	"github.com/gomodule/redigo/redis"
 	"time"
@@ -31,7 +32,7 @@ func NewLLRPCRedisServer(link string) *LLRPCRedisServer {
 func (c *LLRPCRedisServer) InitConnection() *LLRPCRedisServer {
 	fmt.Println("连接到服务端")
 	c.redisPool = &redis.Pool{
-		MaxIdle:     100,
+		MaxIdle:     1000,
 		MaxActive:   0,
 		IdleTimeout: 240 * time.Second,
 		Wait:        true,
@@ -78,23 +79,24 @@ func (c *LLRPCRedisServer) subscribe(funcName string, fn func(LLRPC.TaskData)) e
 
 	go func() {
 		for {
-			taskData := LLRPC.TaskData{}
-
 			conn := c.redisPool.Get()
-			defer conn.Close()
-
 			ret, err := redis.Strings(conn.Do("BRPOP", funcName, 10))
+
 			if err != nil {
 				fmt.Println("subscribe BRPOP Error:", err)
+				ecore.E延时(1)
 			}
 			if len(ret) > 0 {
+				taskData := LLRPC.TaskData{}
+
 				err := json.Unmarshal([]byte(ret[1]), &taskData)
 				if err != nil {
 					fmt.Println("subscribe json Unmarshal Error:", err)
 				}
-				fmt.Println("收到数据", taskData)
+				//fmt.Println("收到数据", taskData)
 				fn(taskData)
 			}
+			conn.Close()
 
 		}
 	}()
@@ -109,7 +111,7 @@ func (c *LLRPCRedisServer) Router(funcName string, fn func(LLRPC.TaskData) (stri
 
 		redata, flag := fn(data)
 		data.Result = redata
-		fmt.Println("处理完成", data, "将结果发布到", data.ReportTo)
+		//fmt.Println("处理完成", data, "将结果发布到", data.ReportTo)
 
 		if flag {
 			c.publish(data.ReportTo, &data)
