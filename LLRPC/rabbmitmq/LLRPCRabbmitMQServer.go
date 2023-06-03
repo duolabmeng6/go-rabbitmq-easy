@@ -13,7 +13,7 @@ type LLRPCRabbmitMQServer struct {
 	LLRPCServer
 
 	//发送用的
-	send *LLRPCRabbmit
+	send *LLRPCRabbmitConn
 
 	amqpURI string
 }
@@ -30,7 +30,7 @@ func NewLLRPCRabbmitMQServer(amqpURI string) *LLRPCRabbmitMQServer {
 // 连接服务器
 func (this *LLRPCRabbmitMQServer) InitConnection() *LLRPCRabbmitMQServer {
 	fmt.Println("连接到服务端")
-	this.send = NewLLRPCRabbmit(this.amqpURI, func(this *LLRPCRabbmit) {
+	this.send = NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
 
 	})
 
@@ -46,7 +46,7 @@ func (this *LLRPCRabbmitMQServer) publish(taskData *TaskData) (err error) {
 
 // 订阅
 func (this *LLRPCRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
-	NewLLRPCRabbmit(this.amqpURI, func(this *LLRPCRabbmit) {
+	NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称

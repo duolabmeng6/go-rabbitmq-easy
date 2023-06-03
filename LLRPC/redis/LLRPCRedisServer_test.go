@@ -80,10 +80,8 @@ func Test测试服务器qps(t *testing.T) {
 
 // 客户端统计
 func Test客户端统计(t *testing.T) {
-	client := NewLLRPCRedisClient("127.0.0.1:6379")
 
 	时间统计 := New时间统计类()
-
 	stratCount := gtype.NewInt()
 	errorCount := gtype.NewInt()
 	successCount := gtype.NewInt()
@@ -105,8 +103,9 @@ func Test客户端统计(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	线程池 := etool.New线程池(10)
+	client := NewLLRPCRedisClient("127.0.0.1:6379")
 
+	线程池 := etool.New线程池(10)
 	for i := 1; i <= 1000*1; i++ {
 		线程池.E加入任务()
 		go func(i int) {
