@@ -53,7 +53,7 @@ func (this *LLRPCKafkaClient) InitConnection() *LLRPCKafkaClient {
 	// consumer
 	this.consumer, err = sarama.NewConsumer([]string{this.link}, config)
 	if err != nil {
-		fmt.Println格式化("consumer_test create consumer error %s\n", err.Error())
+		fmt.Printf("consumer_test create consumer error %s\n", err.Error())
 		return this
 	}
 
@@ -66,7 +66,7 @@ func (this *LLRPCKafkaClient) InitConnection() *LLRPCKafkaClient {
 
 	this.producer, err = sarama.NewAsyncProducer([]string{this.link}, config2)
 	if err != nil {
-		fmt.Println格式化("producer_test create producer error :%s\n", err.Error())
+		fmt.Printf("producer_test create producer error :%s\n", err.Error())
 		return this
 	}
 
@@ -104,7 +104,7 @@ func (this *LLRPCKafkaClient) subscribe(funcName string, fn func(TaskData)) erro
 
 	partition_consumer, err := this.consumer.ConsumePartition(funcName, 0, sarama.OffsetNewest)
 	if err != nil {
-		fmt.Println格式化("try create partition_consumer error %s\n", err.Error())
+		fmt.Printf("try create partition_consumer error %s\n", err.Error())
 		return nil
 	}
 
@@ -120,7 +120,7 @@ func (this *LLRPCKafkaClient) subscribe(funcName string, fn func(TaskData)) erro
 			go fn(taskData)
 
 		case err := <-partition_consumer.Errors():
-			fmt.Println格式化("err :%s\n", err.Error())
+			fmt.Printf("err :%s\n", err.Error())
 		}
 	}
 
