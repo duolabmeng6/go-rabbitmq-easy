@@ -4,6 +4,7 @@ import (
 	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Shopify/sarama"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
