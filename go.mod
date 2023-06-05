@@ -1,4 +1,4 @@
-module duolabmeng6/go-rabbitmq-easy
+module github.com/duolabmeng6/go-rabbitmq-easy
 
 go 1.20
 
