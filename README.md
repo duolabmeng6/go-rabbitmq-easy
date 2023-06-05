@@ -15,6 +15,140 @@
 
 # RPC使用方法
 
+# rabbitmq
+
+## 服务端
+```golang
+package main
+
+import (
+	"fmt"
+	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
+	LLRPCRabbmitMQ "github.com/duolabmeng6/go-rabbitmq-easy/LLRPC/rabbmitmq"
+	"github.com/duolabmeng6/goefun/ecore"
+	"github.com/gogf/gf/v2/container/gtype"
+	"runtime"
+)
+
+func main() {
+	println("启动 LLRPC rabbmitmq 服务端")
+	成功数量 := gtype.NewInt()
+	时间统计 := ecore.New时间统计类()
+	时间统计.E开始()
+	ecore.E时钟_创建(func() bool {
+		fmt.Println(
+			"接收任务数量", 成功数量,
+			"协程数量", runtime.NumGoroutine(),
+			"耗时", 时间统计.E取秒(),
+			"qps", (成功数量.Val()+1)/(ecore.E取整(时间统计.E取秒())+1),
+		)
+		return true
+	}, 1000)
+	ecore.E时钟_创建(func() bool {
+		成功数量.Set(0)
+		时间统计.E开始()
+		return true
+	}, 60*1000)
+
+	server := LLRPCRabbmitMQ.NewServer("amqp://guest:guest@127.0.0.1:5672/")
+
+	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
+		成功数量.Add(1)
+		return data.Data + " ok", true
+	})
+	select {}
+}
+
+```
+
+## 客户端
+```golang
+package main
+
+import (
+	"fmt"
+	LLRPCRabbmitMQ "github.com/duolabmeng6/go-rabbitmq-easy/LLRPC/rabbmitmq"
+	"github.com/duolabmeng6/goefun/ecore"
+	"github.com/duolabmeng6/goefun/etool"
+	"github.com/gogf/gf/v2/container/gtype"
+	"runtime"
+)
+
+func main() {
+	println("启动 LLRPC rabbmitmq 客户端")
+	时间统计 := ecore.New时间统计类()
+	启动数量 := gtype.NewInt()
+	错误数量 := gtype.NewInt()
+	成功数量 := gtype.NewInt()
+	ecore.E时钟_创建(func() bool {
+		fmt.Println(
+			"错误数量", 错误数量.Val(),
+			"成功数量", 成功数量.Val(),
+			"启动数量", 启动数量.Val(),
+			"协程数量", runtime.NumGoroutine(),
+			"耗时", 时间统计.E取秒(),
+			"qps", (成功数量.Val()+1)/(ecore.E取整(时间统计.E取秒())+1),
+		)
+		return true
+	}, 1000)
+
+	ecore.E时钟_创建(func() bool {
+		成功数量.Set(0)
+		时间统计.E开始()
+		return true
+	}, 60*1000)
+
+	client := LLRPCRabbmitMQ.NewClient("amqp://guest:guest@127.0.0.1:5672/")
+
+	ecore.E延时(1000)
+
+	线程池 := etool.New线程池(runtime.NumCPU() * 100)
+	for i := 1; i <= 10000*50; i++ {
+		线程池.E加入任务()
+		go func(i int) {
+			defer 线程池.E完成()
+			启动数量.Add(1)
+			ret, err := client.Call("func1", "hello", 10)
+			if ret.Result != "hello ok" {
+				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
+				错误数量.Add(1)
+			} else {
+				成功数量.Add(1)
+			}
+		}(i)
+	}
+
+	线程池.E等待任务完成()
+	ecore.E延时(5 * 1000)
+}
+
+```
+
+## 性能
+
+客户端
+
+```
+错误数量 0 成功数量 430696 启动数量 432296 协程数量 1613 耗时 22.000 qps 18726
+错误数量 0 成功数量 449025 启动数量 450625 协程数量 1613 耗时 23.000 qps 18709
+错误数量 0 成功数量 468833 启动数量 470433 协程数量 1613 耗时 24.000 qps 18753
+错误数量 0 成功数量 488171 启动数量 489771 协程数量 1613 耗时 25.000 qps 18775
+错误数量 0 成功数量 500000 启动数量 500000 协程数量 13 耗时 26.000 qps 18518
+
+```
+
+服务端
+
+```
+接收任务数量 422300 协程数量 30 耗时 25.000 qps 16242
+接收任务数量 440672 协程数量 49 耗时 26.000 qps 16321
+接收任务数量 460414 协程数量 95 耗时 27.000 qps 16443
+接收任务数量 479450 协程数量 13 耗时 28.000 qps 16532
+接收任务数量 497530 协程数量 23 耗时 29.000 qps 16584
+接收任务数量 500000 协程数量 13 耗时 30.000 qps 16129
+
+```
+
 # redis
 
 ## 服务端
