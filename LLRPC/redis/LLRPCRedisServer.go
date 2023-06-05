@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
-	"github.com/duolabmeng6/goefun/ecore"
 	"net"
 	"runtime"
 	"time"
@@ -92,35 +91,39 @@ func (c *LLRPCRedisServer) publish(funcname string, taskData *LLRPC.TaskData) er
 	if err != nil {
 		fmt.Println("PUBLISH Error", err.Error())
 	}
+	//设置过期时间 由于是即时消息队列 所以过期时间设置短一点
+	c.redisPool.Expire(funcname, time.Second*300)
 
 	return nil
 }
 
 // 订阅
 func (c *LLRPCRedisServer) subscribe(funcName string, fn func(LLRPC.TaskData)) error {
-	fmt.Println("订阅函数事件", funcName)
+	fmt.Println("订阅函数事件", funcName, runtime.NumCPU())
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go func() {
+			for {
+				ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
 
-	go func() {
-		for {
-			ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
-
-			if err != nil {
-				fmt.Println("subscribe BRPOP Error:", err)
-				ecore.E延时(1)
-			}
-			if len(ret) > 0 {
-				taskData := LLRPC.TaskData{}
-
-				err := json.Unmarshal([]byte(ret[1]), &taskData)
 				if err != nil {
-					fmt.Println("subscribe json Unmarshal Error:", err)
+					fmt.Println("subscribe BRPOP Error:", err)
 				}
-				//fmt.Println("收到数据", taskData)
-				fn(taskData)
-			}
+				if len(ret) > 0 {
+					go func() {
+						taskData := LLRPC.TaskData{}
+						err := json.Unmarshal([]byte(ret[1]), &taskData)
+						if err != nil {
+							fmt.Println("subscribe json Unmarshal Error:", err)
+						}
+						//fmt.Println("收到数据", taskData)
+						fn(taskData)
+					}()
+				}
 
-		}
-	}()
+			}
+		}()
+	}
+
 	return nil
 }
 

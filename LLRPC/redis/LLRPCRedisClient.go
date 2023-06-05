@@ -23,8 +23,9 @@ type LLRPCRedisClient struct {
 
 	//等待消息回调的通道
 	//keychan map[string]chan LLRPC.TaskData
-	keychan sync.Map
-	link    string
+	keychan             sync.Map
+	link                string
+	receive_result_name string
 }
 
 // 初始化消息队列
@@ -131,11 +132,11 @@ func (c *LLRPCRedisClient) subscribe(funcName string, fn func(LLRPC.TaskData)) e
 
 func (c *LLRPCRedisClient) listen() {
 	go func() {
-		fmt.Println("注册回调结果监听", "return")
-		c.subscribe("return", func(data LLRPC.TaskData) {
+		c.receive_result_name = "receive_result_" + etool.E取UUID()
+		fmt.Println("注册回调结果监听", c.receive_result_name)
+		c.subscribe(c.receive_result_name, func(data LLRPC.TaskData) {
 			//fmt.Println("收到回调结果:", data)
 			c.returnChan(data.UUID, data)
-
 		})
 	}()
 
@@ -155,7 +156,7 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 	//任务加入时间
 	taskData.StartTime = ecore.E取现行时间().E取毫秒()
 	//任务完成以后回调的频道名称
-	taskData.ReportTo = "return"
+	taskData.ReportTo = c.receive_result_name
 
 	//注册通道
 	mychan := c.newChan(taskData.UUID)
