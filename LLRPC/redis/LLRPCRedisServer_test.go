@@ -31,27 +31,27 @@ func TestClient(t *testing.T) {
 
 // 服务端处理能力测试
 func Test测试服务器能力(t *testing.T) {
-	successCount := gtype.NewInt()
+	成功数量 := gtype.NewInt()
 	时间统计 := New时间统计类()
 	时间统计.E开始()
 	E时钟_创建(func() bool {
 		fmt.Println(
-			"接收任务数量", successCount,
+			"接收任务数量", 成功数量,
 			"协程数量", runtime.NumGoroutine(),
 			"耗时", 时间统计.E取秒(),
-			"qps", (successCount.Val()+1)/(E取整(时间统计.E取秒())+1),
+			"qps", (成功数量.Val()+1)/(E取整(时间统计.E取秒())+1),
 		)
 		return true
 	}, 1000)
 	E时钟_创建(func() bool {
-		successCount.Set(0)
+		成功数量.Set(0)
 		时间统计.E开始()
 		return true
 	}, 60*1000)
 
 	server := NewServer("127.0.0.1:6379")
 	server.Router("func1", 4, func(data LLRPC.TaskData) (string, bool) {
-		successCount.Add(1)
+		成功数量.Add(1)
 		return data.Data + " ok", true
 	})
 	select {}
@@ -78,23 +78,23 @@ func Test测试服务器qps(t *testing.T) {
 // 客户端统计
 func Test客户端统计(t *testing.T) {
 	时间统计 := New时间统计类()
-	stratCount := gtype.NewInt()
-	errorCount := gtype.NewInt()
-	successCount := gtype.NewInt()
+	启动数量 := gtype.NewInt()
+	错误数量 := gtype.NewInt()
+	成功数量 := gtype.NewInt()
 	E时钟_创建(func() bool {
 		fmt.Println(
-			"错误数量", errorCount.Val(),
-			"成功数量", successCount.Val(),
-			"启动数量", stratCount.Val(),
+			"错误数量", 错误数量.Val(),
+			"成功数量", 成功数量.Val(),
+			"启动数量", 启动数量.Val(),
 			"协程数量", runtime.NumGoroutine(),
 			"耗时", 时间统计.E取秒(),
-			"qps", (successCount.Val()+1)/(E取整(时间统计.E取秒())+1),
+			"qps", (成功数量.Val()+1)/(E取整(时间统计.E取秒())+1),
 		)
 		return true
 	}, 1000)
 
 	E时钟_创建(func() bool {
-		successCount.Set(0)
+		成功数量.Set(0)
 		时间统计.E开始()
 		return true
 	}, 60*1000)
@@ -105,13 +105,13 @@ func Test客户端统计(t *testing.T) {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
-			stratCount.Add(1)
+			启动数量.Add(1)
 			ret, err := client.Call("func1", "hello", 10)
 			if ret.Result != "hello ok" {
 				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
-				errorCount.Add(1)
+				错误数量.Add(1)
 			} else {
-				successCount.Add(1)
+				成功数量.Add(1)
 			}
 		}(i)
 	}
