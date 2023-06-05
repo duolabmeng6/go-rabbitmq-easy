@@ -1,9 +1,10 @@
-package redis
+package LLRPCRedis
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"github.com/duolabmeng6/goefun/ecore"
 	"net"
 	"runtime"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
-type LLRPCRedisServer struct {
+type Server struct {
 	LLRPC.LLRPCPubSub
 	LLRPC.LLRPCServer
 
@@ -21,8 +22,8 @@ type LLRPCRedisServer struct {
 }
 
 // 初始化消息队列
-func NewLLRPCRedisServer(link string) *LLRPCRedisServer {
-	c := new(LLRPCRedisServer)
+func NewServer(link string) *Server {
+	c := new(Server)
 	c.link = link
 	c.InitConnection()
 
@@ -30,7 +31,7 @@ func NewLLRPCRedisServer(link string) *LLRPCRedisServer {
 }
 
 // 连接服务器
-func (c *LLRPCRedisServer) InitConnection() *LLRPCRedisServer {
+func (c *Server) InitConnection() *Server {
 	fmt.Println("LLRPC Redis 服务器启动")
 	c.redisPool = redis.NewClient(&redis.Options{
 		//连接信息
@@ -79,7 +80,7 @@ func (c *LLRPCRedisServer) InitConnection() *LLRPCRedisServer {
 }
 
 // 发布
-func (c *LLRPCRedisServer) publish(funcname string, taskData *LLRPC.TaskData) error {
+func (c *Server) publish(funcname string, taskData *LLRPC.TaskData) error {
 	//fmt.Println("发布")
 
 	jsondata, err := json.Marshal(taskData)
@@ -87,60 +88,58 @@ func (c *LLRPCRedisServer) publish(funcname string, taskData *LLRPC.TaskData) er
 		return err
 	}
 
-	err = c.redisPool.LPush(funcname, string(jsondata)).Err()
+	//err = c.redisPool.LPush(funcname, string(jsondata)).Err()
+	//if err != nil {
+	//	fmt.Println("PUBLISH Error", err.Error())
+	//}
+
+	err = c.redisPool.Publish(funcname, string(jsondata)).Err()
 	if err != nil {
-		fmt.Println("PUBLISH Error", err.Error())
+		fmt.Println("Publish Error", err.Error())
 	}
-	//设置过期时间 由于是即时消息队列 所以过期时间设置短一点
-	c.redisPool.Expire(funcname, time.Second*300)
 
 	return nil
 }
 
 // 订阅
-func (c *LLRPCRedisServer) subscribe(funcName string, fn func(LLRPC.TaskData)) error {
-	fmt.Println("订阅函数事件", funcName, runtime.NumCPU())
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go func() {
-			for {
-				ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
-
-				if err != nil {
-					fmt.Println("subscribe BRPOP Error:", err)
-				}
-				if len(ret) > 0 {
-					go func() {
-						taskData := LLRPC.TaskData{}
-						err := json.Unmarshal([]byte(ret[1]), &taskData)
-						if err != nil {
-							fmt.Println("subscribe json Unmarshal Error:", err)
-						}
-						//fmt.Println("收到数据", taskData)
-						fn(taskData)
-					}()
-				}
-
+func (c *Server) subscribe(funcName string, fn func(LLRPC.TaskData)) error {
+	go func() {
+		for {
+			ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
+			if err != nil {
+				fmt.Println("subscribe BRPOP Error:", err.Error())
+				ecore.E延时(1 * 1000)
 			}
-		}()
-	}
-
+			if len(ret) > 0 {
+				go func() {
+					taskData := LLRPC.TaskData{}
+					err := json.Unmarshal([]byte(ret[1]), &taskData)
+					if err != nil {
+						fmt.Println("subscribe json Unmarshal Error:", err)
+					}
+					//fmt.Println("收到数据", taskData)
+					fn(taskData)
+				}()
+			}
+		}
+	}()
 	return nil
 }
 
 // 订阅
-func (c *LLRPCRedisServer) Router(funcName string, fn func(LLRPC.TaskData) (string, bool)) {
-	fmt.Println("注册函数", funcName)
-	c.subscribe(funcName, func(data LLRPC.TaskData) {
-		//fmt.Println("收到任务数据", data)
+func (c *Server) Router(funcName string, Concurrency int, fn func(LLRPC.TaskData) (string, bool)) {
+	fmt.Println("注册函数", funcName, "同时订阅", Concurrency, "个协程")
 
-		redata, flag := fn(data)
-		data.Result = redata
-		//fmt.Println("处理完成", data, "将结果发布到", data.ReportTo)
-
-		if flag {
-			c.publish(data.ReportTo, &data)
-		}
-
-	})
+	for i := 0; i < Concurrency; i++ {
+		c.subscribe(funcName, func(data LLRPC.TaskData) {
+			//fmt.Println("收到任务数据", data)
+			redata, flag := fn(data)
+			data.Result = redata
+			//fmt.Println("处理完成", data, "将结果发布到", data.ReportTo)
+			if flag {
+				c.publish(data.ReportTo, &data)
+			}
+		})
+	}
 
 }

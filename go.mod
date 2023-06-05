@@ -4,10 +4,9 @@ go 1.20
 
 require (
 	github.com/Shopify/sarama v1.26.1
-	github.com/duolabmeng6/goefun v1.2.1
+	github.com/duolabmeng6/goefun v1.2.2
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gogf/gf/v2 v2.4.1
-	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 )
 

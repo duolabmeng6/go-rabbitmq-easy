@@ -1,4 +1,4 @@
-package redis
+package LLRPCRedis
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type LLRPCRedisClient struct {
+type Client struct {
 	LLRPC.LLRPCPubSub
 	LLRPC.LLRPCClient
 
@@ -29,25 +29,26 @@ type LLRPCRedisClient struct {
 }
 
 // 初始化消息队列
-func NewLLRPCRedisClient(link string) *LLRPCRedisClient {
-	c := new(LLRPCRedisClient)
+func NewClient(link string) *Client {
+	c := new(Client)
 	c.link = link
 
 	c.InitConnection()
 	c.listen()
+	ecore.E延时(1000)
 
 	return c
 }
 
 // 连接服务器
-func (c *LLRPCRedisClient) InitConnection() *LLRPCRedisClient {
+func (c *Client) InitConnection() *Client {
 	fmt.Println("连接到服务端 线程池:", runtime.NumCPU())
 	c.redisPool = redis.NewClient(&redis.Options{
 		//连接信息
-		Network:  "tcp",            //网络类型，tcp or unix，默认tcp
-		Addr:     "127.0.0.1:6379", //主机名+冒号+端口，默认localhost:6379
-		Password: "",               //密码
-		DB:       0,                // redis数据库index
+		Network:  "tcp",  //网络类型，tcp or unix，默认tcp
+		Addr:     c.link, //主机名+冒号+端口，默认localhost:6379
+		Password: "",     //密码
+		DB:       0,      // redis数据库index
 
 		//连接池容量及闲置连接数量
 		PoolSize:     4 * runtime.NumCPU(), // 连接池最大socket连接数，默认为4倍CPU数， 4 * runtime.NumCPU
@@ -89,7 +90,7 @@ func (c *LLRPCRedisClient) InitConnection() *LLRPCRedisClient {
 }
 
 // 发布
-func (c *LLRPCRedisClient) publish(taskData *LLRPC.TaskData) error {
+func (c *Client) publish(taskData *LLRPC.TaskData) error {
 	//fmt.Println("发布")
 	jsondata, err := json.Marshal(taskData)
 	if err != nil {
@@ -103,21 +104,31 @@ func (c *LLRPCRedisClient) publish(taskData *LLRPC.TaskData) error {
 }
 
 // 订阅
-func (c *LLRPCRedisClient) subscribe(funcName string, fn func(LLRPC.TaskData)) error {
+func (c *Client) subscribe(funcName string, fn func(LLRPC.TaskData)) error {
 	fmt.Println("订阅函数事件", funcName)
 
 	go func() {
+		pubsub := c.redisPool.Subscribe(funcName)
 		for {
-			ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
+			//ret, err := c.redisPool.BRPop(time.Second*60, funcName).Result()
+			msg, err := pubsub.ReceiveMessage()
+			if err != nil {
+				fmt.Println("ReceiveMessage Error:", err)
+				ecore.E延时(1000)
+				continue
+			}
+			ret := msg.Payload
+			//fmt.Println("ret", ret)
 
 			if err != nil {
 				fmt.Println("subscribe BRPOP Error:", err)
-				ecore.E延时(1)
+				ecore.E延时(1000)
 			}
 			if len(ret) > 0 {
 				taskData := LLRPC.TaskData{}
 
-				err := json.Unmarshal([]byte(ret[1]), &taskData)
+				err := json.Unmarshal([]byte(ret), &taskData)
+				//err := json.Unmarshal([]byte(ret[1]), &taskData)
 				if err != nil {
 					fmt.Println("subscribe json Unmarshal Error:", err)
 				}
@@ -130,9 +141,10 @@ func (c *LLRPCRedisClient) subscribe(funcName string, fn func(LLRPC.TaskData)) e
 	return nil
 }
 
-func (c *LLRPCRedisClient) listen() {
+func (c *Client) listen() {
+	c.receive_result_name = "receive_result_" + etool.E取UUID()
+
 	go func() {
-		c.receive_result_name = "receive_result_" + etool.E取UUID()
 		fmt.Println("注册回调结果监听", c.receive_result_name)
 		c.subscribe(c.receive_result_name, func(data LLRPC.TaskData) {
 			//fmt.Println("收到回调结果:", data)
@@ -142,7 +154,7 @@ func (c *LLRPCRedisClient) listen() {
 
 }
 
-func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, error) {
+func (c *Client) Call(funcName string, data string, timeout int64) (LLRPC.TaskData, error) {
 	var err error
 	taskData := LLRPC.TaskData{}
 	//任务id
@@ -152,7 +164,7 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 	//任务数据
 	taskData.Data = data
 	//超时时间 1.pop 取出任务超时了 就放弃掉 2.任务在规定时间内未完成 超时 退出
-	taskData.TimeOut = 10
+	taskData.TimeOut = timeout
 	//任务加入时间
 	taskData.StartTime = ecore.E取现行时间().E取毫秒()
 	//任务完成以后回调的频道名称
@@ -165,7 +177,7 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 
 	//fmt.Println("uuid", taskData.UUID)
 	//等待通道的结果回调
-	value, flag := c.waitResult(mychan, taskData.UUID, 10)
+	value, flag := c.waitResult(mychan, taskData.UUID, taskData.TimeOut)
 	if flag == false {
 		err = errors.New(ecore.E到文本(value))
 	}
@@ -173,13 +185,13 @@ func (c *LLRPCRedisClient) Call(funcName string, data string) (LLRPC.TaskData, e
 	return value, err
 }
 
-func (c *LLRPCRedisClient) newChan(key string) chan LLRPC.TaskData {
+func (c *Client) newChan(key string) chan LLRPC.TaskData {
 	mychan := make(chan LLRPC.TaskData)
 	c.keychan.Store(key, mychan)
 	return mychan
 }
 
-func (c *LLRPCRedisClient) returnChan(uuid string, data LLRPC.TaskData) {
+func (c *Client) returnChan(uuid string, data LLRPC.TaskData) {
 	value, ok := c.keychan.Load(uuid)
 	if ok {
 		funchan := value.(chan LLRPC.TaskData)
@@ -188,7 +200,7 @@ func (c *LLRPCRedisClient) returnChan(uuid string, data LLRPC.TaskData) {
 }
 
 // 等待任务结果
-func (c *LLRPCRedisClient) waitResult(mychan chan LLRPC.TaskData, key string, timeOut int64) (LLRPC.TaskData, bool) {
+func (c *Client) waitResult(mychan chan LLRPC.TaskData, key string, timeOut int64) (LLRPC.TaskData, bool) {
 	//注册监听通道
 	var value LLRPC.TaskData
 

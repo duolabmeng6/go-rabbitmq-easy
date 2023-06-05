@@ -99,8 +99,9 @@ func (this *LLRPCRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) 
 }
 
 func (this *LLRPCRabbmitMQClient) listen() {
+	this.receive_result_name = "receive_result_" + etool.E取UUID()
+
 	go func() {
-		this.receive_result_name = "receive_result_" + etool.E取UUID()
 		fmt.Println("注册回调结果监听", this.receive_result_name)
 		this.subscribe(this.receive_result_name, func(data TaskData) {
 			//fmt.Println("收到回调结果:", data)

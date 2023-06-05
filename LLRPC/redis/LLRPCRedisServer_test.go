@@ -1,4 +1,4 @@
-package redis
+package LLRPCRedis
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server := NewLLRPCRedisServer("127.0.0.1:6379")
-	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
+	server := NewServer("127.0.0.1:6379")
+	server.Router("func1", 4, func(data LLRPC.TaskData) (string, bool) {
 		fmt.Println("test", data.Data)
 
 		return data.Data + " ok", true
@@ -21,10 +21,10 @@ func TestServer(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	client := NewLLRPCRedisClient("127.0.0.1:6379")
-	for i := 0; i < 1; i++ {
+	client := NewClient("127.0.0.1:6379")
+	for i := 0; i < 10000; i++ {
 		fmt.Println("调用函数 func1")
-		ret, err := client.Call("func1", "hello")
+		ret, err := client.Call("func1", "hello", 10)
 		fmt.Println("func1 结果", ret.Result, err)
 	}
 }
@@ -49,8 +49,8 @@ func Test测试服务器能力(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	server := NewLLRPCRedisServer("127.0.0.1:6379")
-	server.Router("func1", func(data LLRPC.TaskData) (string, bool) {
+	server := NewServer("127.0.0.1:6379")
+	server.Router("func1", 4, func(data LLRPC.TaskData) (string, bool) {
 		successCount.Add(1)
 		return data.Data + " ok", true
 	})
@@ -58,14 +58,14 @@ func Test测试服务器能力(t *testing.T) {
 }
 
 func Test测试服务器qps(t *testing.T) {
-	client := NewLLRPCRedisClient("127.0.0.1:6379")
+	client := NewClient("127.0.0.1:6379")
 
 	线程池 := etool.New线程池(10)
 	for {
 		线程池.E加入任务()
 		go func() {
 			defer 线程池.E完成()
-			ret, err := client.Call("func1", "hello")
+			ret, err := client.Call("func1", "hello", 10)
 
 			fmt.Println("测试调用函数 func1 结果", ret.Result, err)
 
@@ -99,14 +99,14 @@ func Test客户端统计(t *testing.T) {
 		return true
 	}, 60*1000)
 
-	client := NewLLRPCRedisClient("127.0.0.1:6379")
+	client := NewClient("127.0.0.1:6379")
 	线程池 := etool.New线程池(1000)
 	for i := 1; i <= 10000*1; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
 			stratCount.Add(1)
-			ret, err := client.Call("func1", "hello")
+			ret, err := client.Call("func1", "hello", 10)
 			if ret.Result != "hello ok" {
 				fmt.Println("调用错误", "返回结果", ret.Result, "错误提示", err)
 				errorCount.Add(1)
