@@ -1,0 +1,17 @@
+name: auto_tag
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: duolabmeng6/action-autotag-python@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
