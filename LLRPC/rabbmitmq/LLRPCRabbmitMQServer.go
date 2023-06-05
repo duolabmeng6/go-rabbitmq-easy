@@ -8,19 +8,19 @@ import (
 	"encoding/json"
 )
 
-type LLRPCRabbmitMQServer struct {
+type Server struct {
 	LLRPCPubSub
 	LLRPCServer
 
 	//发送用的
-	send *LLRPCRabbmitConn
+	send *Conn
 
 	amqpURI string
 }
 
 // 初始化消息队列
-func NewLLRPCRabbmitMQServer(amqpURI string) *LLRPCRabbmitMQServer {
-	this := new(LLRPCRabbmitMQServer)
+func NewServer(amqpURI string) *Server {
+	this := new(Server)
 	this.amqpURI = amqpURI
 	this.InitConnection()
 
@@ -28,25 +28,23 @@ func NewLLRPCRabbmitMQServer(amqpURI string) *LLRPCRabbmitMQServer {
 }
 
 // 连接服务器
-func (this *LLRPCRabbmitMQServer) InitConnection() *LLRPCRabbmitMQServer {
-	fmt.Println("连接到服务端")
-	this.send = NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
+func (this *Server) InitConnection() *Server {
+	this.send = NewConn(this.amqpURI, func(this *Conn) {
 
 	})
-
 	return this
 }
 
 // 发布
-func (this *LLRPCRabbmitMQServer) publish(taskData *TaskData) (err error) {
+func (this *Server) publish(taskData *TaskData) (err error) {
 
 	return this.send.Publish(taskData.ReportTo, taskData)
 
 }
 
 // 订阅
-func (this *LLRPCRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) error {
-	NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
+func (this *Server) subscribe(funcName string, fn func(TaskData)) error {
+	NewConn(this.amqpURI, func(this *Conn) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
@@ -87,7 +85,7 @@ func (this *LLRPCRabbmitMQServer) subscribe(funcName string, fn func(TaskData)) 
 }
 
 // 订阅
-func (this *LLRPCRabbmitMQServer) Router(funcName string, fn func(TaskData) (string, bool)) {
+func (this *Server) Router(funcName string, fn func(TaskData) (string, bool)) {
 	fmt.Println("注册函数", funcName)
 	this.subscribe(funcName, func(data TaskData) {
 		//fmt.Println("收到任务数据", data)

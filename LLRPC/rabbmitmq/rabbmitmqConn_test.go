@@ -8,8 +8,8 @@ import (
 	"testing"
 )
 
-func TestNewLLRPCRabbmit_server(t *testing.T) {
-	server := NewLLRPCRabbmitConn("amqp://guest:guest@127.0.0.1:5672/", func(this *LLRPCRabbmitConn) {
+func TestNew_server(t *testing.T) {
+	server := NewConn("amqp://guest:guest@127.0.0.1:5672/", func(this *Conn) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			"test1", // 队列名称
@@ -54,8 +54,8 @@ func TestNewLLRPCRabbmit_server(t *testing.T) {
 	select {}
 }
 
-func TestNewLLRPCRabbmit_client(t *testing.T) {
-	server := NewLLRPCRabbmitConn("amqp://guest:guest@127.0.0.1:5672/", func(this *LLRPCRabbmitConn) {
+func TestNew_client(t *testing.T) {
+	server := NewConn("amqp://guest:guest@127.0.0.1:5672/", func(this *Conn) {
 
 	})
 	taskData := LLRPC.TaskData{

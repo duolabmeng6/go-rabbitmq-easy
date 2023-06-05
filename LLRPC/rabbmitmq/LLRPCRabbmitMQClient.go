@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type LLRPCRabbmitMQClient struct {
+type Client struct {
 	LLRPCPubSub
 	LLRPCClient
 
@@ -23,15 +23,15 @@ type LLRPCRabbmitMQClient struct {
 	amqpURI string
 
 	//发送用的
-	send *LLRPCRabbmitConn
+	send *Conn
 
 	receive_result_name string
 }
 
 // 初始化消息队列
-func NewLLRPCRabbmitMQClient(amqpURI string) *LLRPCRabbmitMQClient {
+func NewClient(amqpURI string) *Client {
 
-	this := new(LLRPCRabbmitMQClient)
+	this := new(Client)
 	this.amqpURI = amqpURI
 	this.keychan = map[string]chan TaskData{}
 
@@ -42,23 +42,22 @@ func NewLLRPCRabbmitMQClient(amqpURI string) *LLRPCRabbmitMQClient {
 }
 
 // 连接服务器
-func (this *LLRPCRabbmitMQClient) InitConnection() *LLRPCRabbmitMQClient {
-	fmt.Println("连接到服务端")
-	this.send = NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
+func (this *Client) InitConnection() *Client {
+	this.send = NewConn(this.amqpURI, func(this *Conn) {
 
 	})
 	return this
 }
 
 // 发布
-func (this *LLRPCRabbmitMQClient) publish(taskData *TaskData) (err error) {
+func (this *Client) publish(taskData *TaskData) (err error) {
 	return this.send.Publish(taskData.Fun, taskData)
 }
 
 // 订阅
-func (this *LLRPCRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) error {
+func (this *Client) subscribe(funcName string, fn func(TaskData)) error {
 
-	NewLLRPCRabbmitConn(this.amqpURI, func(this *LLRPCRabbmitConn) {
+	NewConn(this.amqpURI, func(this *Conn) {
 		fmt.Println("连接成功开始订阅队列")
 		q, err := this.channel.QueueDeclare(
 			funcName, // 队列名称
@@ -98,7 +97,7 @@ func (this *LLRPCRabbmitMQClient) subscribe(funcName string, fn func(TaskData)) 
 	return nil
 }
 
-func (this *LLRPCRabbmitMQClient) listen() {
+func (this *Client) listen() {
 	this.receive_result_name = "receive_result_" + etool.E取UUID()
 
 	go func() {
@@ -111,7 +110,7 @@ func (this *LLRPCRabbmitMQClient) listen() {
 	}()
 }
 
-func (this *LLRPCRabbmitMQClient) Call(funcName string, data string, timeout int64) (TaskData, error) {
+func (this *Client) Call(funcName string, data string, timeout int64) (TaskData, error) {
 	var err error
 	taskData := TaskData{}
 	//任务id
@@ -142,7 +141,7 @@ func (this *LLRPCRabbmitMQClient) Call(funcName string, data string, timeout int
 	return value, err
 }
 
-func (this *LLRPCRabbmitMQClient) newChan(key string) chan TaskData {
+func (this *Client) newChan(key string) chan TaskData {
 	this.lock.Lock()
 	this.keychan[key] = make(chan TaskData)
 	mychan := this.keychan[key]
@@ -150,7 +149,7 @@ func (this *LLRPCRabbmitMQClient) newChan(key string) chan TaskData {
 	return mychan
 }
 
-func (this *LLRPCRabbmitMQClient) returnChan(uuid string, data TaskData) {
+func (this *Client) returnChan(uuid string, data TaskData) {
 	this.lock.RLock()
 	funchan, ok := this.keychan[uuid]
 	this.lock.RUnlock()
@@ -162,7 +161,7 @@ func (this *LLRPCRabbmitMQClient) returnChan(uuid string, data TaskData) {
 }
 
 // 等待任务结果
-func (this *LLRPCRabbmitMQClient) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
+func (this *Client) waitResult(mychan chan TaskData, key string, timeOut int64) (TaskData, bool) {
 	//注册监听通道
 	var value TaskData
 

@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-type LLRPCRabbmitConn struct {
+type Conn struct {
 	LLRPCPubSub
 	amqpURI           string
 	conn              *amqp.Connection
@@ -20,12 +20,12 @@ type LLRPCRabbmitConn struct {
 	funcName string
 	msgs     <-chan amqp.Delivery
 	fn       func(TaskData)
-	success  func(channel *LLRPCRabbmitConn)
+	success  func(channel *Conn)
 }
 
 // 初始化消息队列
-func NewLLRPCRabbmitConn(amqpURI string, success func(this *LLRPCRabbmitConn)) *LLRPCRabbmitConn {
-	this := new(LLRPCRabbmitConn)
+func NewConn(amqpURI string, success func(this *Conn)) *Conn {
+	this := new(Conn)
 	this.amqpURI = amqpURI
 	this.success = success
 
@@ -35,7 +35,7 @@ func NewLLRPCRabbmitConn(amqpURI string, success func(this *LLRPCRabbmitConn)) *
 }
 
 // 连接服务器
-func (this *LLRPCRabbmitConn) InitConnection() bool {
+func (this *Conn) InitConnection() bool {
 	fmt.Println("连接到服务端")
 	var err error
 
@@ -63,7 +63,7 @@ func (this *LLRPCRabbmitConn) InitConnection() bool {
 	return true
 }
 
-func (this *LLRPCRabbmitConn) handleReconnect() {
+func (this *Conn) handleReconnect() {
 	for err := range this.clientNotifyClose {
 		log.Println("断开了连接,", err.Code)
 		E延时(3000)
@@ -76,7 +76,7 @@ func (this *LLRPCRabbmitConn) handleReconnect() {
 }
 
 // 发布
-func (this *LLRPCRabbmitConn) Publish(queueName string, taskData *TaskData) (err error) {
+func (this *Conn) Publish(queueName string, taskData *TaskData) (err error) {
 	//fmt.Println("发布消息", queueName)
 
 	jsondata, _ := json.Marshal(taskData)
@@ -100,7 +100,7 @@ func (this *LLRPCRabbmitConn) Publish(queueName string, taskData *TaskData) (err
 }
 
 // 订阅
-func (this *LLRPCRabbmitConn) Subscribe(fn func(TaskData)) error {
+func (this *Conn) Subscribe(fn func(TaskData)) error {
 	this.fn = fn
 
 	return nil
