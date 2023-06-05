@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/Shopify/sarama v1.26.1
 	github.com/duolabmeng6/goefun v1.2.1
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gogf/gf/v2 v2.4.1
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
@@ -20,6 +21,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gogf/guuid v1.0.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
@@ -27,6 +29,8 @@ require (
 	github.com/klauspost/compress v1.9.8 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/gomega v1.27.7 // indirect
 	github.com/pierrec/lz4 v2.4.1+incompatible // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect

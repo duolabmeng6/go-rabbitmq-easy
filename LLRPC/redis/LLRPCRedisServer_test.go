@@ -22,7 +22,7 @@ func TestServer(t *testing.T) {
 
 func TestClient(t *testing.T) {
 	client := NewLLRPCRedisClient("127.0.0.1:6379")
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1; i++ {
 		fmt.Println("调用函数 func1")
 		ret, err := client.Call("func1", "hello")
 		fmt.Println("func1 结果", ret.Result, err)
@@ -100,8 +100,8 @@ func Test客户端统计(t *testing.T) {
 	}, 60*1000)
 
 	client := NewLLRPCRedisClient("127.0.0.1:6379")
-	线程池 := etool.New线程池(100)
-	for i := 1; i <= 10000*10; i++ {
+	线程池 := etool.New线程池(1000)
+	for i := 1; i <= 10000*1; i++ {
 		线程池.E加入任务()
 		go func(i int) {
 			defer 线程池.E完成()
