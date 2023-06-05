@@ -15,7 +15,7 @@
 package LLRPCRabbmitMQ
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"testing"
@@ -117,7 +117,7 @@ func TestNewLLRPCRabbmit_client(t *testing.T) {
 package LLRPCRabbmitMQ
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LLRPC"
+	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
 	 "github.com/duolabmeng6/goefun/ecore"
 

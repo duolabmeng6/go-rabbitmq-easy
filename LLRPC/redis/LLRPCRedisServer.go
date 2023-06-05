@@ -1,9 +1,9 @@
 package redis
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"fmt"
+	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"github.com/duolabmeng6/goefun/ecore"
 	"net"
 	"runtime"

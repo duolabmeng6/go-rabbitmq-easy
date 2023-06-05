@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"fmt"
+	"github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
 	"github.com/gogf/gf/v2/container/gtype"

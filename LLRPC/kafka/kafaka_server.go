@@ -1,10 +1,10 @@
 package kafka
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"encoding/json"
 	"fmt"
 	"github.com/Shopify/sarama"
+	. "github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	. "github.com/duolabmeng6/goefun/ecore"
 
 	"github.com/gogf/gf/v2/container/gtype"

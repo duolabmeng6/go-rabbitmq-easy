@@ -1,9 +1,9 @@
 package example
 
 import (
-	. "duolabmeng6/go-rabbitmq-easy/LLRPC"
 	"errors"
 	"fmt"
+	. "github.com/duolabmeng6/go-rabbitmq-easy/LLRPC"
 	. "github.com/duolabmeng6/goefun/ecore"
 	"github.com/duolabmeng6/goefun/etool"
 	"sync"
